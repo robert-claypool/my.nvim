@@ -193,8 +193,14 @@ require('lazy').setup({
 -- [[ Setting options ]]
 -- See `:help vim.o`
 
--- Set highlight on search
-vim.o.hlsearch = false
+-- Highlight the current line
+vim.o.cursorline = true
+
+-- Highlight the current column
+vim.o.cursorcolumn = true
+
+-- Highlight all search matches
+vim.o.hlsearch = true
 
 -- Make line numbers default
 vim.wo.number = true
@@ -207,15 +213,39 @@ vim.o.mouse = 'a'
 --  See `:help 'clipboard'`
 vim.o.clipboard = 'unnamedplus'
 
--- Enable break indent
+-- Enable break indent, make long lines wrap with indentation
 vim.o.breakindent = true
 
 -- Save undo history
 vim.o.undofile = true
 
+-- Muchos level of undo
+vim.o.undolevels = 500
+
+-- Keep a long history of commands
+vim.o.history = 5000
+
+-- Limit syntax highlighting on very long lines
+vim.o.synmaxcol = 5000
+
+-- Start scrolling a few lines before the border (more context around the cursor)
+vim.o.scrolloff = 4
+
+-- Start horz scrolling a few columns before the border 098 098 098 098 09809 234203498 092384 00980234 09 23409 230498 234098 234098809 234098 er908
+vim.o.sidescrolloff = 4
+
+-- Hide mode (e.g. '-- INSERT ----') in the command line because it's in the status line
+vim.o.showmode = false
+
 -- Case insensitive searching UNLESS /C or capital in search
 vim.o.ignorecase = true
 vim.o.smartcase = true
+
+-- Wrapping is ugly, off by default
+vim.o.wrap = false
+
+-- But if you switch from nowrap to wrap, try not to wrap in the middle of words
+vim.o.linebreak = true
 
 -- Keep signcolumn on by default
 vim.wo.signcolumn = 'yes'
@@ -231,6 +261,9 @@ vim.o.completeopt = 'menuone,noselect'
 -- NOTE: You should make sure your terminal supports this
 vim.o.termguicolors = true
 
+-- Show vertical lines at common line-length max values
+vim.o.colorcolumn = '80,100,120'
+
 -- [[ Basic Keymaps ]]
 
 -- Keymaps for better default experience
@@ -240,6 +273,17 @@ vim.keymap.set({ 'n', 'v' }, '<Space>', '<Nop>', { silent = true })
 -- Remap for dealing with word wrap
 vim.keymap.set('n', 'k', "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = true })
 vim.keymap.set('n', 'j', "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = true })
+
+-- Return to NORMAL mode with jj (at least 6 yrs deep in my muscle memory by now)
+vim.keymap.set('i', 'jj', '<esc>')
+
+-- Set special characters for things like trailing spaces (trail) end-of-line (eol)
+vim.opt.listchars:append({ trail = '·' })
+vim.opt.listchars:append({ eol = '$' })
+vim.opt.listchars:append({ extends = '→' })
+
+-- Show or hide special characters
+vim.keymap.set('n', '<localleader>ts', ':set list!<cr>|', { desc = '[T]oggle [s]pecial characters' })
 
 -- [[ Highlight on yank ]]
 -- See `:help vim.highlight.on_yank()`
