@@ -274,6 +274,12 @@ vim.keymap.set({ 'n', 'v' }, '<Space>', '<Nop>', { silent = true })
 vim.keymap.set('n', 'k', "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = true })
 vim.keymap.set('n', 'j', "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = true })
 
+-- Use ctrl-[hjkl] to change the active split
+vim.api.nvim_set_keymap('n', '<C-k>', ':wincmd k<CR>', {silent = true})
+vim.api.nvim_set_keymap('n', '<C-j>', ':wincmd j<CR>', {silent = true})
+vim.api.nvim_set_keymap('n', '<C-h>', ':wincmd h<CR>', {silent = true})
+vim.api.nvim_set_keymap('n', '<C-l>', ':wincmd l<CR>', {silent = true})
+
 -- Return to NORMAL mode with jj (at least 6 yrs deep in my muscle memory by now)
 vim.keymap.set('i', 'jj', '<esc>')
 
