@@ -153,11 +153,11 @@ require('lazy').setup({
   },
 
   {
-    -- Theme inspired by Atom
-    'navarasu/onedark.nvim',
+    "bluz71/vim-nightfly-colors",
     priority = 1000,
+    name = "nightfly",
     config = function()
-      vim.cmd.colorscheme 'onedark'
+      vim.cmd.colorscheme 'nightfly'
     end,
   },
 
@@ -168,7 +168,7 @@ require('lazy').setup({
     opts = {
       options = {
         icons_enabled = false,
-        theme = 'onedark',
+        theme = 'nightfly',
         component_separators = '|',
         section_separators = '',
       },
