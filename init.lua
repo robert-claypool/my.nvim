@@ -322,6 +322,12 @@ vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Go to next diagnos
 vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = 'Open floating diagnostic message' })
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostics list' })
 
+-- Use ctrl-[hjkl] to change the active split
+vim.api.nvim_set_keymap('n', '<C-k>', ':wincmd k<CR>', {silent = true})
+vim.api.nvim_set_keymap('n', '<C-j>', ':wincmd j<CR>', {silent = true})
+vim.api.nvim_set_keymap('n', '<C-h>', ':wincmd h<CR>', {silent = true})
+vim.api.nvim_set_keymap('n', '<C-l>', ':wincmd l<CR>', {silent = true})
+
 -- Return to NORMAL with jj
 vim.keymap.set('i', 'jj', '<esc>')
 
