@@ -154,6 +154,8 @@ require('lazy').setup({
 
   {
     "bluz71/vim-nightfly-colors",
+    -- Theme inspired by Atom
+    -- 'navarasu/onedark.nvim',
     priority = 1000,
     name = "nightfly",
     config = function()
