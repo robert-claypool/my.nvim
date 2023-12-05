@@ -22,6 +22,9 @@ if not vim.loop.fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(lazypath)
 
+-- Set global variables before loading plugins
+vim.g.copilot_assume_mapped = true
+
 -- [[ Configure plugins ]]
 -- NOTE: Here is where you install your plugins.
 --  You can configure plugins using the `config` key.
@@ -34,6 +37,9 @@ require('lazy').setup({
   -- Git related plugins
   'tpope/vim-fugitive',
   'tpope/vim-rhubarb',
+
+  -- GitHub Copilot AI
+  "github/copilot.vim",
 
   -- Detect tabstop and shiftwidth automatically
   'tpope/vim-sleuth',
@@ -617,6 +623,66 @@ cmp.setup {
     { name = 'luasnip' },
   },
 }
+
+-- Create a namespace for extmarks
+local ns_id = vim.api.nvim_create_namespace('blingWordHighlights')
+
+_G.blingWord = function(n)
+    -- Yank the current word into the z register and retrieve it
+    vim.cmd('normal! "zyiw')
+    local word = vim.fn.getreg('z')
+
+    -- Escape the word for use in a Lua pattern
+    local escaped_word = vim.fn.escape(word, '\\')
+
+    -- Function to apply highlighting in a buffer
+    local function applyHighlight(buf)
+        -- Clear existing extmarks in this namespace
+        vim.api.nvim_buf_clear_namespace(buf, ns_id, 0, -1)
+
+        -- Search for the word in the buffer and apply extmarks
+        local line_count = vim.api.nvim_buf_line_count(buf)
+        for line = 0, line_count - 1 do
+            local text = vim.api.nvim_buf_get_lines(buf, line, line + 1, false)[1]
+            for index in string.gmatch(text, '()' .. escaped_word .. '()') do
+                -- -1 because Lua indexing is 1-based and Neovim API expects 0-based indexing
+                vim.api.nvim_buf_set_extmark(buf, ns_id, line, index - 1, {
+                    end_line = line,
+                    end_col = index - 1 + #word,
+                    hl_group = 'BlingWord' .. n
+                })
+            end
+        end
+    end
+
+    -- Iterate over all windows in the current tab
+    for _, win_id in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+        local buf_id = vim.api.nvim_win_get_buf(win_id)
+        -- Check if the buffer is loaded to avoid processing unloaded buffers
+        if vim.api.nvim_buf_is_loaded(buf_id) then
+            applyHighlight(buf_id)
+        end
+    end
+end
+
+-- Key mappings
+vim.api.nvim_set_keymap('n', '<localleader>h0', ':lua vim.fn.clearmatches()<CR>:noh<CR>', { noremap = true, silent = true })
+for i = 1, 6 do
+    vim.api.nvim_set_keymap('n', '<localleader>h' .. i, ':lua blingWord(' .. i .. ')<CR>', { noremap = true, silent = true })
+end
+
+-- Highlight definitions
+local colors = {
+    '#6eff81', -- Neon Lime Green
+    '#ff75ba', -- Hot Pink
+    '#70f8ff', -- Electric Blue
+    '#ffff73', -- Bright Yellow
+    '#f7554f', -- Vivid Orange
+    '#cf65fc'  -- Radiant Purple
+}
+for i, color in ipairs(colors) do
+    vim.api.nvim_command('highlight def BlingWord' .. i .. ' guifg=#000000 ctermfg=16 guibg=' .. color .. ' ctermbg=' .. i + 213)
+end
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
