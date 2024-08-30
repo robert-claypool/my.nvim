@@ -2,3 +2,6 @@ tags
 test.sh
 .luarc.json
 nvim
+
+# macOS junk
+.DS_Store
