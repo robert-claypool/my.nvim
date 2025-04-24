@@ -43,14 +43,14 @@ require('lazy').setup({
 
   'hashivim/vim-terraform',
   {
-      "nvim-neo-tree/neo-tree.nvim",
-      branch = "v3.x",
-      dependencies = {
-        "nvim-lua/plenary.nvim",
-        "nvim-tree/nvim-web-devicons", -- not strictly required, but recommended
-        "MunifTanjim/nui.nvim",
-        -- "3rd/image.nvim", -- Optional image support in preview window: See `# Preview Mode` for more information
-      }
+    'stevearc/oil.nvim',
+    opts = {
+      -- Start with minimal config to use default keymaps
+      view_options = {
+        show_hidden = false,
+      },
+    },
+    dependencies = { "nvim-tree/nvim-web-devicons" },
   },
 
   -- NOTE: This is where your plugins related to LSP can be installed.
@@ -377,6 +377,9 @@ vim.api.nvim_set_keymap(
   { silent = true, noremap = true }
 )
 
+-- Oil.nvim (same key binding as neo-tree)
+vim.keymap.set("n", "-", "<CMD>Oil<CR>", { desc = "Open parent directory" })
+
 -- [[ Highlight on yank ]]
 -- See `:help vim.highlight.on_yank()`
 local highlight_group = vim.api.nvim_create_augroup('YankHighlight', { clear = true })
@@ -589,7 +592,8 @@ require('which-key').add({
   { "<leader>s", group = "[S]earch" },
   { "<leader>s_", hidden = true },
   { "<leader>w", group = "[W]orkspace" },
-  { "<leader>w_", hidden = true }
+  { "<leader>w_", hidden = true },
+  { "-", desc = "Oil file explorer" }
 })
 
 -- mason-lspconfig requires that these setup functions are called in this order
