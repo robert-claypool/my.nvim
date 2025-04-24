@@ -82,7 +82,11 @@ require('lazy').setup({
 
       -- Adds LSP completion capabilities
       'hrsh7th/cmp-nvim-lsp',
-
+      
+      -- Additional completion sources
+      'hrsh7th/cmp-buffer',     -- Complete from current buffer
+      'hrsh7th/cmp-path',       -- Complete file paths
+      
       -- Adds a number of user-friendly snippets
       'rafamadriz/friendly-snippets',
     },
@@ -571,6 +575,9 @@ local on_attach = function(_, bufnr)
     print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
   end, '[W]orkspace [L]ist Folders')
 
+  -- Add format keymap
+  nmap('<leader>f', vim.lsp.buf.format, '[F]ormat code')
+  
   -- Create a command `:Format` local to the LSP buffer
   vim.api.nvim_buf_create_user_command(bufnr, 'Format', function(_)
     vim.lsp.buf.format()
@@ -583,6 +590,7 @@ require('which-key').add({
   { "<leader>c_", hidden = true },
   { "<leader>d", group = "[D]ocument" },
   { "<leader>d_", hidden = true },
+  { "<leader>f", desc = "[F]ormat code" },
   { "<leader>g", group = "[G]it" },
   { "<leader>g_", hidden = true },
   { "<leader>h", group = "More git" },
@@ -700,8 +708,17 @@ cmp.setup {
   sources = {
     { name = 'nvim_lsp' },
     { name = 'luasnip' },
+    { name = 'buffer' },
+    { name = 'path' },
   },
 }
+
+cmp.setup.cmdline({ '/', '?' }, {
+  mapping = cmp.mapping.preset.cmdline(),
+  sources = {
+    { name = 'buffer' }
+  }
+})
 
 -- Define the function that will change the background for the
 -- active and inactive panes using Vimscript
