@@ -23,25 +23,171 @@ if not vim.loop.fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(lazypath)
 
--- Set global variables before loading plugins
-vim.g.copilot_assume_mapped = true
+-- NOTE: You should make sure your terminal supports this
+-- Setting this early for plugins that need it (like colorizer)
+vim.o.termguicolors = true
 
 require('lazy').setup({
   -- NOTE: First, some plugins that don't require any configuration
 
-  -- Git related plugins
-  'tpope/vim-fugitive',
-  'tpope/vim-rhubarb',
+  -- Tim Pope essentials
   'tpope/vim-surround',
+  'tpope/vim-repeat',  -- Enable repeating supported plugin maps with "."
 
-  -- AI assistants
-  "github/copilot.vim",
-  "madox2/vim-ai",
+  -- AI assistant - Codeium (better than Copilot, free)
+  {
+    "Exafunction/codeium.vim",
+    event = 'BufEnter',
+    config = function ()
+      -- Disable default bindings
+      vim.g.codeium_disable_bindings = 1
+      
+      -- Set up our own keybindings
+      vim.keymap.set('i', '<Tab>', function() return vim.fn['codeium#Accept']() end, { expr = true, silent = true })
+      vim.keymap.set('i', '<C-g>', function() return vim.fn['codeium#Accept']() end, { expr = true, silent = true })
+      vim.keymap.set('i', '<C-]>', function() return vim.fn['codeium#CycleCompletions'](1) end, { expr = true, silent = true })
+      vim.keymap.set('i', '<C-[>', function() return vim.fn['codeium#CycleCompletions'](-1) end, { expr = true, silent = true })
+      vim.keymap.set('i', '<C-x>', function() return vim.fn['codeium#Clear']() end, { expr = true, silent = true })
+    end
+  },
+
+  -- Navigation within files - Hop (the community favorite EasyMotion replacement)
+  {
+    "phaazon/hop.nvim",
+    branch = 'v2',
+    config = function()
+      local hop = require('hop')
+      hop.setup { keys = 'etovxqpdygfblzhckisuran' }
+      
+      -- Custom highlights with cyan background
+      vim.api.nvim_set_hl(0, 'HopNextKey', { bg = '#00dfff', fg = '#000000', bold = true })
+      vim.api.nvim_set_hl(0, 'HopNextKey1', { bg = '#00dfff', fg = '#000000', bold = true })
+      vim.api.nvim_set_hl(0, 'HopNextKey2', { bg = '#ff007c', fg = '#000000', bold = true })
+      vim.api.nvim_set_hl(0, 'HopUnmatched', { fg = '#666666' })
+      
+      -- Hop to any character (most used)
+      vim.keymap.set('n', 's', function() hop.hint_char1() end, {desc = "Hop to character"})
+      
+      -- Hop to any word beginning
+      vim.keymap.set('n', 'gw', function() hop.hint_words() end, {desc = "Hop to word"})
+      
+      -- Hop with 2 characters for precision (shift-s)
+      vim.keymap.set('n', 'S', function() hop.hint_char2() end, {desc = "Hop to 2 characters"})
+    end,
+  },
+
+  -- Better search highlighting and preview
+  {
+    "kevinhwang91/nvim-hlslens",
+    config = function()
+      require('hlslens').setup()
+      -- Show search count in virtual text
+      local kopts = {noremap = true, silent = true}
+      vim.api.nvim_set_keymap('n', 'n', [[<Cmd>execute('normal! ' . v:count1 . 'n')<CR><Cmd>lua require('hlslens').start()<CR>]], kopts)
+      vim.api.nvim_set_keymap('n', 'N', [[<Cmd>execute('normal! ' . v:count1 . 'N')<CR><Cmd>lua require('hlslens').start()<CR>]], kopts)
+      vim.api.nvim_set_keymap('n', '*', [[*<Cmd>lua require('hlslens').start()<CR>]], kopts)
+      vim.api.nvim_set_keymap('n', '#', [[#<Cmd>lua require('hlslens').start()<CR>]], kopts)
+    end,
+  },
+
+  -- Quick file switching
+  {
+    "ThePrimeagen/harpoon",
+    branch = "harpoon2",
+    dependencies = { "nvim-lua/plenary.nvim" },
+    config = function()
+      local harpoon = require("harpoon")
+      harpoon:setup()
+      
+      -- Set up keybindings after harpoon is loaded
+      vim.keymap.set("n", "<leader>ha", function() harpoon:list():add() end, { desc = "Harpoon add file" })
+      vim.keymap.set("n", "<leader>hh", function() harpoon.ui:toggle_quick_menu(harpoon:list()) end, { desc = "Harpoon menu" })
+      vim.keymap.set("n", "<leader>1", function() harpoon:list():select(1) end, { desc = "Harpoon file 1" })
+      vim.keymap.set("n", "<leader>2", function() harpoon:list():select(2) end, { desc = "Harpoon file 2" })
+      vim.keymap.set("n", "<leader>3", function() harpoon:list():select(3) end, { desc = "Harpoon file 3" })
+      vim.keymap.set("n", "<leader>4", function() harpoon:list():select(4) end, { desc = "Harpoon file 4" })
+    end,
+  },
+
+  -- Tree view for file structure
+  {
+    "nvim-neo-tree/neo-tree.nvim",
+    branch = "v3.x",
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+      "nvim-tree/nvim-web-devicons",
+      "MunifTanjim/nui.nvim",
+    },
+    cmd = "Neotree",
+    keys = {
+      { "<leader>e", "<cmd>Neotree toggle<cr>", desc = "Toggle file explorer" },
+    },
+    opts = {
+      close_if_last_window = true,
+      filesystem = {
+        follow_current_file = { enabled = true },
+        use_libuv_file_watcher = true,
+      },
+    },
+  },
 
   -- Detect tabstop and shiftwidth automatically
   'tpope/vim-sleuth',
 
+  -- Visual undo history
+  {
+    'mbbill/undotree',
+    config = function()
+      vim.keymap.set('n', '<leader>u', vim.cmd.UndotreeToggle, { desc = 'Toggle [U]ndo tree' })
+    end
+  },
+
   'hashivim/vim-terraform',
+
+  -- "Just works" IDE features
+  {
+    'NvChad/nvim-colorizer.lua',
+    opts = {
+      user_default_options = {
+        mode = "background",
+        tailwind = true,
+      },
+    }
+  },
+
+  {
+    "folke/todo-comments.nvim",
+    dependencies = { "nvim-lua/plenary.nvim" },
+    opts = {
+      -- No config needed, just works!
+    }
+  },
+
+  {
+    "RRethy/vim-illuminate",
+    config = function()
+      -- Automatically highlights other uses of word under cursor
+      require('illuminate').configure({
+        delay = 100,
+        large_file_cutoff = 2000,
+      })
+    end
+  },
+
+  {
+    "hedyhli/outline.nvim",
+    config = function()
+      require("outline").setup({
+        -- Ensure j/k work normally
+        outline_window = {
+          wrap = false,
+          show_cursorline = true,
+          hide_cursor = false,
+        },
+      })
+      vim.keymap.set('n', '<leader>o', ':Outline<CR>', { desc = 'Toggle symbols [o]utline' })
+    end
+  },
   {
     'stevearc/oil.nvim',
     opts = {
@@ -66,31 +212,9 @@ require('lazy').setup({
       -- Useful status updates for LSP
       -- NOTE: `opts = {}` is the same as calling `require('fidget').setup({})`
       { 'j-hui/fidget.nvim', opts = {} },
-
-      -- Additional lua configuration, makes nvim stuff amazing!
-      'folke/neodev.nvim',
     },
   },
 
-  {
-    -- Autocompletion
-    'hrsh7th/nvim-cmp',
-    dependencies = {
-      -- Snippet Engine & its associated nvim-cmp source
-      'L3MON4D3/LuaSnip',
-      'saadparwaiz1/cmp_luasnip',
-
-      -- Adds LSP completion capabilities
-      'hrsh7th/cmp-nvim-lsp',
-      
-      -- Additional completion sources
-      'hrsh7th/cmp-buffer',     -- Complete from current buffer
-      'hrsh7th/cmp-path',       -- Complete file paths
-      
-      -- Adds a number of user-friendly snippets
-      'rafamadriz/friendly-snippets',
-    },
-  },
 
   -- Useful plugin to show you pending keybinds.
   { 'folke/which-key.nvim', opts = {} },
@@ -148,52 +272,6 @@ require('lazy').setup({
   --     vim.cmd.colorscheme 'spring-night'
   --   end,
   -- },
-  {
-    "yetone/avante.nvim",
-    event = "VeryLazy",
-    lazy = false,
-    opts = {
-      -- add any opts here
-    },
-    keys = {
-      { "<leader>aa", function() require("avante.api").ask() end, desc = "avante: ask", mode = { "n", "v" } },
-      { "<leader>ar", function() require("avante.api").refresh() end, desc = "avante: refresh" },
-      { "<leader>ae", function() require("avante.api").edit() end, desc = "avante: edit", mode = "v" },
-    },
-    dependencies = {
-      "stevearc/dressing.nvim",
-      "nvim-lua/plenary.nvim",
-      "MunifTanjim/nui.nvim",
-      --- The below dependencies are optional,
-      "nvim-tree/nvim-web-devicons", -- or echasnovski/mini.icons
-      "zbirenbaum/copilot.lua", -- for providers='copilot'
-      {
-        -- support for image pasting
-        "HakonHarnes/img-clip.nvim",
-        event = "VeryLazy",
-        opts = {
-          -- recommended settings
-          default = {
-            embed_image_as_base64 = false,
-            prompt_for_file_name = false,
-            drag_and_drop = {
-              insert_mode = true,
-            },
-            -- required for Windows users
-            use_absolute_path = true,
-          },
-        },
-      },
-      {
-        -- Make sure to setup it properly if you have lazy=true
-        'MeanderingProgrammer/render-markdown.nvim',
-        opts = {
-          file_types = { "markdown", "Avante" },
-        },
-        ft = { "markdown", "Avante" },
-      },
-    },
-  },
   {
     -- Set lualine as statusline
     'nvim-lualine/lualine.nvim',
@@ -333,9 +411,6 @@ vim.o.timeoutlen = 300
 -- Set completeopt to have a better completion experience
 vim.o.completeopt = 'menuone,noselect'
 
--- NOTE: You should make sure your terminal supports this
-vim.o.termguicolors = true
-
 -- Show vertical lines at common line-length max values
 vim.o.colorcolumn = '80,100,120'
 
@@ -372,14 +447,6 @@ vim.opt.listchars:append({ extends = '→' })
 -- Show or hide special characters
 vim.keymap.set('n', '<localleader>ts', ':set list!<cr>|', { desc = '[T]oggle [s]pecial characters' })
 
--- Copilot suggestions can be accepted with <Tab>, but this is often aleady taken by nvim-cmp suggestions.
--- Here we add <C-G> as an alternative mapping that is always available.
-vim.api.nvim_set_keymap(
-  'i',
-  '<C-G>',
-  "<cmd>call copilot#Accept('<CR>')<CR>",
-  { silent = true, noremap = true }
-)
 
 -- Oil.nvim (same key binding as neo-tree)
 vim.keymap.set("n", "-", "<CMD>Oil<CR>", { desc = "Open parent directory" })
@@ -399,13 +466,41 @@ vim.api.nvim_create_autocmd('TextYankPost', {
 -- See `:help telescope` and `:help telescope.setup()`
 require('telescope').setup {
   defaults = {
+    -- Use ripgrep with smart settings
+    vimgrep_arguments = {
+      'rg',
+      '--color=never',
+      '--no-heading',
+      '--with-filename',
+      '--line-number',
+      '--column',
+      '--smart-case',
+      '--hidden',
+      '--glob=!.git/*'
+    },
     mappings = {
       i = {
         ['<C-u>'] = false,
         ['<C-d>'] = false,
+        ['jj'] = { '<Esc>', type = 'command' },
       },
     },
+    file_ignore_patterns = { 'node_modules', '.git/', '.cache' },
+    layout_strategy = 'flex',
   },
+  pickers = {
+    find_files = {
+      hidden = true,
+    },
+  },
+  extensions = {
+    fzf = {
+      fuzzy = true,
+      override_generic_sorter = true,
+      override_file_sorter = true,
+      case_mode = "smart_case",
+    }
+  }
 }
 
 -- Enable telescope fzf native, if installed
@@ -593,15 +688,16 @@ require('which-key').add({
   { "<leader>f", desc = "[F]ormat code" },
   { "<leader>g", group = "[G]it" },
   { "<leader>g_", hidden = true },
-  { "<leader>h", group = "More git" },
-  { "<leader>h_", hidden = true },
   { "<leader>r", group = "[R]ename" },
   { "<leader>r_", hidden = true },
   { "<leader>s", group = "[S]earch" },
   { "<leader>s_", hidden = true },
   { "<leader>w", group = "[W]orkspace" },
   { "<leader>w_", hidden = true },
-  { "-", desc = "Oil file explorer" }
+  { "<leader>h", group = "[H]arpoon" },
+  { "<leader>h_", hidden = true },
+  { "-", desc = "Oil file explorer" },
+  { "<leader>e", desc = "Toggle file [E]xplorer (tree view)" }
 })
 
 -- mason-lspconfig requires that these setup functions are called in this order
@@ -638,85 +734,26 @@ local servers = {
 -- Setup neovim lua configuration
 require('neodev').setup()
 
--- nvim-cmp supports additional completion capabilities, so broadcast that to servers
+-- Setup basic LSP capabilities
 local capabilities = vim.lsp.protocol.make_client_capabilities()
-capabilities = require('cmp_nvim_lsp').default_capabilities(capabilities)
 
 -- Ensure the servers above are installed
 local mason_lspconfig = require 'mason-lspconfig'
 
 mason_lspconfig.setup {
   ensure_installed = vim.tbl_keys(servers),
-}
-
-mason_lspconfig.setup_handlers {
-  function(server_name)
-    require('lspconfig')[server_name].setup {
-      capabilities = capabilities,
-      on_attach = on_attach,
-      settings = servers[server_name],
-      filetypes = (servers[server_name] or {}).filetypes,
-    }
-  end,
-}
-
--- [[ Configure nvim-cmp ]]
--- See `:help cmp`
-local cmp = require 'cmp'
-local luasnip = require 'luasnip'
-require('luasnip.loaders.from_vscode').lazy_load()
-luasnip.config.setup {}
-
-cmp.setup {
-  snippet = {
-    expand = function(args)
-      luasnip.lsp_expand(args.body)
+  handlers = {
+    function(server_name)
+      require('lspconfig')[server_name].setup {
+        capabilities = capabilities,
+        on_attach = on_attach,
+        settings = servers[server_name],
+        filetypes = (servers[server_name] or {}).filetypes,
+      }
     end,
-  },
-  completion = {
-    completeopt = 'menu,menuone,noinsert'
-  },
-  mapping = cmp.mapping.preset.insert {
-    ['<C-n>'] = cmp.mapping.select_next_item(),
-    ['<C-p>'] = cmp.mapping.select_prev_item(),
-    ['<C-d>'] = cmp.mapping.scroll_docs(-4),
-    ['<C-f>'] = cmp.mapping.scroll_docs(4),
-    ['<C-Space>'] = cmp.mapping.complete {},
-    ['<CR>'] = cmp.mapping.confirm {
-      behavior = cmp.ConfirmBehavior.Replace,
-      select = true,
-    },
-    ['<Tab>'] = cmp.mapping(function(fallback)
-      if cmp.visible() then
-        cmp.select_next_item()
-      elseif luasnip.expand_or_locally_jumpable() then
-        luasnip.expand_or_jump()
-      else
-        fallback()
-      end
-    end, { 'i', 's' }),
-    ['<S-Tab>'] = cmp.mapping(function(fallback)
-      if cmp.visible() then
-        cmp.select_prev_item()
-      elseif luasnip.locally_jumpable(-1) then
-        luasnip.jump(-1)
-      else
-        fallback()
-      end
-    end, { 'i', 's' }),
-  },
-  sources = {
-    { name = 'nvim_lsp' },
-    { name = 'path' },
-  },
+  }
 }
 
-cmp.setup.cmdline({ '/', '?' }, {
-  mapping = cmp.mapping.preset.cmdline(),
-  sources = {
-    { name = 'buffer' }
-  }
-})
 
 -- Define the function that will change the background for the
 -- active and inactive panes using Vimscript

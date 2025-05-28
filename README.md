@@ -54,7 +54,6 @@ git clone https://github.com/nvim-lua/kickstart.nvim.git %userprofile%\AppData\L
 git clone https://github.com/nvim-lua/kickstart.nvim.git $env:USERPROFILE\AppData\Local\nvim\ 
 ```
 
-
 ### Post Installation
 
 Start Neovim
@@ -112,7 +111,6 @@ return {
   end,
 }
 ```
-
 
 This will automatically install [windwp/nvim-autopairs](https://github.com/windwp/nvim-autopairs) and enable it on startup. For more information, see documentation for [lazy.nvim](https://github.com/folke/lazy.nvim).
 
