@@ -343,7 +343,7 @@ require('lazy').setup({
   --    Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
   --
   --    For additional information see: https://github.com/folke/lazy.nvim#-structuring-your-plugins
-  -- { import = 'custom.plugins' },
+  { import = 'custom.plugins' },
 }, {})
 
 -- [[ Setting options ]]
@@ -442,6 +442,9 @@ vim.api.nvim_set_keymap('n', '<C-l>', ':wincmd l<CR>', {silent = true})
 -- Return to NORMAL with jj
 vim.keymap.set('i', 'jj', '<esc>')
 
+-- Exit Terminal mode with Ctrl-Q (Escape is reserved for terminal apps like Claude Code)
+vim.keymap.set('t', '<C-q>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
+
 -- Set special characters for things like trailing spaces (trail) end-of-line (eol)
 vim.opt.listchars:append({ trail = '·' })
 vim.opt.listchars:append({ eol = '$' })
@@ -453,6 +456,22 @@ vim.keymap.set('n', '<localleader>ts', ':set list!<cr>|', { desc = '[T]oggle [s]
 
 -- Oil.nvim (same key binding as neo-tree)
 vim.keymap.set("n", "-", "<CMD>Oil<CR>", { desc = "Open parent directory" })
+
+-- Add confirmation for window quit to prevent accidental closing
+vim.keymap.set('n', '<C-w>q', function()
+  local choice = vim.fn.confirm("Close this window?", "&Yes\n&No", 2)
+  if choice == 1 then
+    vim.cmd('quit')
+  end
+end, { desc = 'Quit window with confirmation' })
+
+-- Also protect C-w C-q (holding Ctrl while pressing q)
+vim.keymap.set('n', '<C-w><C-q>', function()
+  local choice = vim.fn.confirm("Close this window?", "&Yes\n&No", 2)
+  if choice == 1 then
+    vim.cmd('quit')
+  end
+end, { desc = 'Quit window with confirmation' })
 
 -- [[ Highlight on yank ]]
 -- See `:help vim.highlight.on_yank()`
@@ -826,6 +845,16 @@ vim.api.nvim_set_keymap('n', '<localleader>h0', ':lua vim.fn.clearmatches()<CR>:
 for i = 1, 6 do
     vim.api.nvim_set_keymap('n', '<localleader>h' .. i, ':lua blingWord(' .. i .. ')<CR>', { noremap = true, silent = true })
 end
+
+-- Claude Code Editor keymaps
+-- TODO: Move these to claude-code.nvim plugin when implementing PR
+-- vim.keymap.set('n', '<leader>ce', function() 
+--   require('custom.claude-code-editor').edit_for_claude() 
+-- end, { desc = 'Claude Code [e]ditor' })
+-- 
+-- vim.keymap.set('v', '<leader>cs', function() 
+--   require('custom.claude-code-editor').send_visual_to_claude() 
+-- end, { desc = 'Claude Code [s]end selection' })
 
 -- Highlight definitions
 local colors = {
