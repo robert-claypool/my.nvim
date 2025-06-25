@@ -259,14 +259,14 @@ require('lazy').setup({
       end,
     },
   },
-  {
-    "bluz71/vim-nightfly-colors",
-    priority = 1000, -- load this before all other start plugins
-    name = "nightfly",
-    config = function()
-      vim.cmd.colorscheme 'nightfly'
-    end,
-  },
+  -- {
+  --   "bluz71/vim-nightfly-colors",
+  --   priority = 1000, -- load this before all other start plugins
+  --   name = "nightfly",
+  --   config = function()
+  --     vim.cmd.colorscheme 'nightfly'
+  --   end,
+  -- },
   -- {
   --   "rhysd/vim-color-spring-night",
   --   priority = 1000, -- load this before all other start plugins
@@ -282,7 +282,7 @@ require('lazy').setup({
     opts = {
       options = {
         icons_enabled = false,
-        theme = 'nightfly',
+        theme = 'flexoki',
         component_separators = '|',
         section_separators = '',
       },
@@ -481,6 +481,27 @@ vim.api.nvim_create_autocmd('TextYankPost', {
     vim.highlight.on_yank()
   end,
   group = highlight_group,
+  pattern = '*',
+})
+
+-- [[ Set defaults for new empty buffers ]]
+local empty_buffer_group = vim.api.nvim_create_augroup('EmptyBufferDefaults', { clear = true })
+vim.api.nvim_create_autocmd('BufEnter', {
+  callback = function()
+    -- Check if this is a new empty buffer
+    local buf = vim.api.nvim_get_current_buf()
+    local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+    local is_empty = #lines == 1 and lines[1] == ''
+    local has_name = vim.api.nvim_buf_get_name(buf) ~= ''
+    
+    -- Only apply to unnamed empty buffers
+    if is_empty and not has_name then
+      vim.bo.filetype = 'markdown'
+      vim.wo.wrap = true
+      vim.wo.spell = true
+    end
+  end,
+  group = empty_buffer_group,
   pattern = '*',
 })
 
