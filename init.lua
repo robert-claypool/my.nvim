@@ -505,6 +505,12 @@ vim.api.nvim_create_autocmd('BufEnter', {
   pattern = '*',
 })
 
+-- [[ Set .mdx files as markdown ]]
+vim.api.nvim_create_autocmd({'BufRead', 'BufNewFile'}, {
+  pattern = '*.mdx',
+  command = 'set filetype=markdown',
+})
+
 -- [[ Configure Telescope ]]
 -- See `:help telescope` and `:help telescope.setup()`
 require('telescope').setup {
