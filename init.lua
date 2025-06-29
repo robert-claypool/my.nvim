@@ -617,7 +617,41 @@ vim.keymap.set('n', '<leader>sr', require('telescope.builtin').resume, { desc = 
 vim.defer_fn(function()
   require('nvim-treesitter.configs').setup {
     -- Add languages to be installed here that you want installed for treesitter
-    ensure_installed = { 'c', 'cpp', 'go', 'lua', 'python', 'rust', 'tsx', 'javascript', 'typescript', 'vimdoc', 'vim', 'bash' },
+    ensure_installed = { 
+      -- Programming languages
+      'c', 'cpp', 'c_sharp', 'go', 'lua', 'python', 'rust', 'tsx', 'javascript', 
+      'typescript', 'php', 'perl', 'zig', 'svelte',
+      
+      -- Documentation and config
+      'vimdoc', 'vim', 'markdown', 'markdown_inline', 'latex', 'mermaid',
+      
+      -- Shell and system
+      'bash', 'awk', 'powershell', 'tmux', 'ssh_config', 'passwd',
+      
+      -- Git
+      'diff', 'git_rebase', 'gitcommit', 'gitignore', 'gitattributes', 'git_config',
+      
+      -- Data formats
+      'json', 'jsonc', 'json5', 'yaml', 'toml', 'xml', 'csv', 'graphql', 'jq',
+      
+      -- Web
+      'html', 'css', 'scss', 'http', 'nginx', 'caddy',
+      
+      -- DevOps and cloud
+      'dockerfile', 'terraform', 'helm', 'bicep',
+      
+      -- Build tools and package managers
+      'make', 'cmake', 'requirements', 'pymanifest', 'editorconfig',
+      
+      -- Go ecosystem
+      'gomod', 'gosum', 'gowork', 'gotmpl', 'goctl',
+      
+      -- Documentation
+      'jsdoc', 'luadoc', 'godot_resource',
+      
+      -- Other
+      'sql', 'regex', 'printf', 'gpg'
+    },
 
     -- Autoinstall languages that are not installed. Defaults to false (but you can change for yourself!)
     auto_install = false,
