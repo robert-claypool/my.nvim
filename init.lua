@@ -808,23 +808,42 @@ end
 
 -- document existing key chains
 require('which-key').add({
-  { "<leader>c", group = "[C]ode" },
+  { "<leader>c", group = "Code" },
   { "<leader>c_", hidden = true },
-  { "<leader>d", group = "[D]ocument" },
+  { "<leader>d", group = "Document" },
   { "<leader>d_", hidden = true },
-  { "<leader>f", desc = "[F]ormat code" },
-  { "<leader>g", group = "[G]it" },
+  { "<leader>f", group = "Find Files" },
+  { "<leader>f_", hidden = true },
+  { "<leader>g", group = "Git" },
   { "<leader>g_", hidden = true },
-  { "<leader>r", group = "[R]ename" },
+  { "<leader>r", group = "Rename" },
   { "<leader>r_", hidden = true },
-  { "<leader>s", group = "[S]earch" },
+  { "<leader>s", group = "Search" },
   { "<leader>s_", hidden = true },
-  { "<leader>w", group = "[W]orkspace" },
+  { "<leader>w", group = "Workspace" },
   { "<leader>w_", hidden = true },
-  { "<leader>h", group = "[H]arpoon" },
+  { "<leader>h", group = "Harpoon" },
   { "<leader>h_", hidden = true },
-  { "-", desc = "Oil file explorer" },
-  { "<leader>e", desc = "Toggle file [E]xplorer (tree view)" }
+  { "<leader>b", group = "Buffer" },
+  { "<leader>b_", hidden = true },
+  { "<leader>n", group = "Notes/Snippets" },
+  { "<leader>n_", hidden = true },
+  { "<leader>t", group = "Theme" },
+  { "<leader>t_", hidden = true },
+  { "<leader>a", hidden = true }, -- Hide swap next parameter
+  { "<leader>A", hidden = true }, -- Hide swap previous parameter
+  { "<leader>1", hidden = true }, -- Hide harpoon file 1
+  { "<leader>2", hidden = true }, -- Hide harpoon file 2
+  { "<leader>3", hidden = true }, -- Hide harpoon file 3
+  { "<leader>4", hidden = true }, -- Hide harpoon file 4
+  { "-", desc = "Oil - File Manager" },
+  { "<leader>e", desc = "Neo-tree Explorer" },
+  { "<leader>u", desc = "Toggle Gundo Tree" },
+  { "<leader>o", desc = "Toggle Outline" },
+  { "<leader>z", desc = "Zen Mode" },
+  { "<leader>?", desc = "Recent Files" },
+  { "<leader><space>", desc = "Open Buffers" },
+  { "<leader>/", desc = "Search Current Buffer" }
 })
 
 -- mason-lspconfig requires that these setup functions are called in this order
@@ -845,7 +864,7 @@ local servers = {
   -- gopls = {},
   -- pyright = {},
   -- rust_analyzer = {},
-  -- tsserver = {},
+  -- ts_ls = {},
   -- html = { filetypes = { 'html', 'twig', 'hbs'} },
 
   lua_ls = {
