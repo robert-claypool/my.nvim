@@ -442,8 +442,8 @@ vim.api.nvim_set_keymap('n', '<C-l>', ':wincmd l<CR>', {silent = true})
 -- Return to NORMAL with jj
 vim.keymap.set('i', 'jj', '<esc>')
 
--- Exit Terminal mode with Ctrl-Q (Escape is reserved for terminal apps like Claude Code)
-vim.keymap.set('t', '<C-q>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
+-- Exit Terminal mode with Ctrl-Space (easy to press)
+vim.keymap.set('t', '<C-Space>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
 
 -- Set special characters for things like trailing spaces (trail) end-of-line (eol)
 vim.opt.listchars:append({ trail = '·' })
@@ -456,6 +456,37 @@ vim.keymap.set('n', '<localleader>ts', ':set list!<cr>|', { desc = '[T]oggle [s]
 
 -- Oil.nvim (same key binding as neo-tree)
 vim.keymap.set("n", "-", "<CMD>Oil<CR>", { desc = "Open parent directory" })
+
+-- Screenshot workflow
+vim.keymap.set("n", "<leader>ss", "<CMD>Oil ~/screenshots<CR>", { desc = "Open screenshots directory" })
+
+-- Command to insert the latest screenshot path
+vim.api.nvim_create_user_command('LatestScreenshot', function()
+  local handle = io.popen("ls -t ~/screenshots/*.png 2>/dev/null | head -1")
+  local result = handle:read("*a")
+  handle:close()
+  local screenshot = result:gsub("\n", "")
+  if screenshot ~= "" then
+    vim.api.nvim_put({screenshot}, "", true, true)
+  else
+    vim.notify("No screenshots found", vim.log.levels.WARN)
+  end
+end, { desc = "Insert path of latest screenshot" })
+
+-- Command to copy latest screenshot path to clipboard
+vim.api.nvim_create_user_command('CopyLatestScreenshot', function()
+  local handle = io.popen("ls -t ~/screenshots/*.png 2>/dev/null | head -1")
+  local result = handle:read("*a")
+  handle:close()
+  local screenshot = result:gsub("\n", "")
+  if screenshot ~= "" then
+    vim.fn.setreg("+", screenshot)
+    vim.notify("Copied: " .. screenshot)
+  else
+    vim.notify("No screenshots found", vim.log.levels.WARN)
+  end
+end, { desc = "Copy latest screenshot path to clipboard" })
+
 
 -- Add confirmation for window quit to prevent accidental closing
 vim.keymap.set('n', '<C-w>q', function()

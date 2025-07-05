@@ -1,51 +1,40 @@
 return {
-  dir = "~/git/claude-code.nvim", -- Use local directory instead of GitHub
-  dependencies = {
-    "nvim-lua/plenary.nvim", -- Required for git operations
-  },
+  "coder/claudecode.nvim",
   config = function()
-    require("claude-code").setup({
-      -- Terminal window settings
-      window = {
-        split_ratio = 0.5,           -- 60% of screen for the terminal window
-        position = "vsplit",         -- Position of the window: "botright", "topleft", "vertical", "vsplit", etc.
-        enter_insert = false,        -- Don't automatically enter INSERT mode
-        start_in_normal_mode = true, -- Start in NORMAL mode (not INSERT)
-        hide_numbers = true,         -- Hide line numbers in terminal
-        hide_signcolumn = true,      -- Hide sign column in terminal
+    require("claudecode").setup({
+      -- Port range for WebSocket server
+      port_range = { min = 27000, max = 27100 },  -- Distinctive range for Claude Code
+      auto_start = true,
+      log_level = "info",
+      
+      -- Custom terminal command with both flags on by default
+      terminal_cmd = "claude --dangerously-accept-filesystem-access --verbose",
+      
+      -- Terminal settings (for Claude Code process)
+      terminal = {
+        split_side = "right",
+        split_width_percentage = 0.5,  -- Match your current 50% split
+        provider = "auto",
       },
-      -- File refresh settings
-      refresh = {
-        enable = true,             -- Enable file change detection
-        updatetime = 100,          -- updatetime when Claude Code is active
-        timer_interval = 500,      -- Check for file changes every half-second
-        show_notifications = true, -- Show notification when files are reloaded
+      
+      -- Diff view settings
+      diff_opts = {
+        auto_close_on_accept = true,
+        vertical_split = true,
       },
-      -- Git project settings
-      git = {
-        use_git_root = true,     -- Set CWD to git root when opening Claude Code
-      },
-      -- Command settings
-      command = "claude",        -- Command to launch Claude Code
-      -- Command variants
-      command_variants = {
-        continue = "--continue", -- Resume most recent conversation
-        resume = "--resume",     -- Display conversation picker
-        verbose = "--verbose",   -- Enable verbose logging
-      },
+      
       -- Keymaps
       keymaps = {
-        toggle = {
-          normal = "<leader>cc",     -- Space+cc to toggle Claude Code
-          terminal = "<C-,>",        -- Ctrl+, in terminal mode
-          variants = {
-            continue = "<leader>cC", -- Continue conversation
-            verbose = "<leader>cV",  -- Verbose mode
-          },
-        },
-        window_navigation = true, -- Enable C-h/j/k/l for window navigation
-        scrolling = true,         -- Enable C-f/b for scrolling
-      }
+        toggle = "<leader>cc",        -- Match your current toggle key
+        send_selection = "<leader>cs", -- Send visual selection to Claude
+        accept_diff = "y",            -- Accept diff changes
+        reject_diff = "n",            -- Reject diff changes
+      },
     })
-  end
+  end,
+  keys = {
+    { "<leader>cc", "<cmd>ClaudeCode<cr>", desc = "Toggle Claude Code" },
+    { "<leader>cs", mode = "v", "<cmd>ClaudeCodeSend<cr>", desc = "Send selection to Claude" },
+    { "<leader>cC", "<cmd>ClaudeCodeContinue<cr>", desc = "Continue Claude conversation" },
+  }
 }
