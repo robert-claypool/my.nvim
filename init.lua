@@ -445,6 +445,10 @@ vim.keymap.set('i', 'jj', '<esc>')
 -- Exit Terminal mode with Ctrl-Space (easy to press)
 vim.keymap.set('t', '<C-Space>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
 
+-- Set terminal scrollback buffer to 100,000 lines (for Claude Code and other terminals)
+-- Safe on modern systems, uses ~100-200MB RAM at full capacity
+vim.opt.scrollback = 100000
+
 -- Set special characters for things like trailing spaces (trail) end-of-line (eol)
 vim.opt.listchars:append({ trail = '·' })
 vim.opt.listchars:append({ eol = '$' })
@@ -540,6 +544,15 @@ vim.api.nvim_create_autocmd('BufEnter', {
 vim.api.nvim_create_autocmd({'BufRead', 'BufNewFile'}, {
   pattern = '*.mdx',
   command = 'set filetype=markdown',
+})
+
+-- [[ Set large scrollback for terminal buffers ]]
+vim.api.nvim_create_autocmd('TermOpen', {
+  callback = function()
+    -- 100k lines uses ~100-200MB RAM when full
+    vim.opt_local.scrollback = 100000
+  end,
+  desc = 'Set large scrollback buffer for terminals',
 })
 
 -- [[ Configure Telescope ]]
