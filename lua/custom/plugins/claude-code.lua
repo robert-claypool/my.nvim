@@ -7,9 +7,6 @@ return {
       auto_start = true,
       log_level = "info",
       
-      -- Custom terminal command with both flags on by default
-      terminal_cmd = "claude --dangerously-accept-filesystem-access --verbose",
-      
       -- Terminal settings (for Claude Code process)
       terminal = {
         split_side = "right",
