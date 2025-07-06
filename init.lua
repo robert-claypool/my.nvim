@@ -110,26 +110,6 @@ require('lazy').setup({
   },
 
   -- Tree view for file structure
-  {
-    "nvim-neo-tree/neo-tree.nvim",
-    branch = "v3.x",
-    dependencies = {
-      "nvim-lua/plenary.nvim",
-      "nvim-tree/nvim-web-devicons",
-      "MunifTanjim/nui.nvim",
-    },
-    cmd = "Neotree",
-    keys = {
-      { "<leader>e", "<cmd>Neotree toggle<cr>", desc = "Toggle file explorer" },
-    },
-    opts = {
-      close_if_last_window = true,
-      filesystem = {
-        follow_current_file = { enabled = true },
-        use_libuv_file_watcher = true,
-      },
-    },
-  },
 
   -- Detect tabstop and shiftwidth automatically
   'tpope/vim-sleuth',
@@ -279,14 +259,72 @@ require('lazy').setup({
     -- Set lualine as statusline
     'nvim-lualine/lualine.nvim',
     -- See `:help lualine.txt`
-    opts = {
-      options = {
-        icons_enabled = false,
-        theme = 'flexoki',
-        component_separators = '|',
-        section_separators = '',
-      },
-    },
+    config = function()
+      require('lualine').setup({
+        options = {
+          icons_enabled = false,
+          theme = 'flexoki',
+          component_separators = '|',
+          section_separators = '',
+          globalstatus = true, -- Single status line for all windows
+          always_divide_middle = false,
+        },
+        sections = {
+          lualine_a = {'mode'},
+          lualine_b = {'branch', 'diff', 'diagnostics'},
+          lualine_c = {
+            {
+              'filename',
+              path = 1, -- relative path
+              symbols = {
+                modified = ' [+]',
+                readonly = ' [RO]',
+                unnamed = '[No Name]',
+              },
+            }
+          },
+          lualine_x = {'encoding', 'fileformat', 'filetype'},
+          lualine_y = {'progress'},
+          lualine_z = {'location'}
+        },
+        inactive_sections = {
+          lualine_a = {},
+          lualine_b = {},
+          lualine_c = {{'filename', path = 1}},
+          lualine_x = {'location'},
+          lualine_y = {},
+          lualine_z = {}
+        },
+        winbar = {},
+        inactive_winbar = {},
+        tabline = {
+          lualine_a = {},
+          lualine_b = {},
+          lualine_c = {
+            {
+              function()
+                local filepath = vim.fn.expand('%:p')
+                if filepath == '' then
+                  return '[No Name]'
+                end
+                return filepath
+              end,
+              color = { fg = '#ffffff', bg = '#1a1a1a', gui = 'bold' },
+            }
+          },
+          lualine_x = {
+            {
+              function()
+                return 'CWD: ' .. vim.fn.getcwd()
+              end,
+              color = { fg = '#00a0ff', bg = '#1a1a1a', gui = 'bold' },
+            }
+          },
+          lualine_y = {},
+          lualine_z = {}
+        },
+      })
+    end,
   },
 
   {
@@ -355,6 +393,9 @@ vim.o.cursorline = true
 
 -- Highlight the current column
 vim.o.cursorcolumn = true
+
+-- Always show tabline for full file path display
+vim.o.showtabline = 2
 
 -- Highlight all search matches
 vim.o.hlsearch = true
@@ -430,7 +471,7 @@ vim.keymap.set('n', 'j', "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = tr
 -- Diagnostic keymaps
 vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = 'Go to previous diagnostic message' })
 vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Go to next diagnostic message' })
-vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = 'Open floating diagnostic message' })
+vim.keymap.set('n', '<leader>E', vim.diagnostic.open_float, { desc = 'Open floating diagnostic message' })
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostics list' })
 
 -- Use ctrl-[hjkl] to change the active split
@@ -460,6 +501,7 @@ vim.keymap.set('n', '<localleader>ts', ':set list!<cr>|', { desc = '[T]oggle [s]
 
 -- Oil.nvim (same key binding as neo-tree)
 vim.keymap.set("n", "-", "<CMD>Oil<CR>", { desc = "Open parent directory" })
+vim.keymap.set("n", "<leader>e", "<CMD>Oil<CR>", { desc = "Open file explorer (Oil)" })
 
 -- Screenshot workflow
 vim.keymap.set("n", "<leader>ss", "<CMD>Oil ~/screenshots<CR>", { desc = "Open screenshots directory" })
@@ -830,14 +872,15 @@ require('which-key').add({
   { "<leader>n_", hidden = true },
   { "<leader>t", group = "Theme" },
   { "<leader>t_", hidden = true },
-  { "<leader>a", hidden = true }, -- Hide swap next parameter
+  { "<leader>a", group = "AI/Claude Code" },
+  { "<leader>a_", hidden = true },
   { "<leader>A", hidden = true }, -- Hide swap previous parameter
   { "<leader>1", hidden = true }, -- Hide harpoon file 1
   { "<leader>2", hidden = true }, -- Hide harpoon file 2
   { "<leader>3", hidden = true }, -- Hide harpoon file 3
   { "<leader>4", hidden = true }, -- Hide harpoon file 4
   { "-", desc = "Oil - File Manager" },
-  { "<leader>e", desc = "Neo-tree Explorer" },
+  { "<leader>e", desc = "Oil File Explorer" },
   { "<leader>u", desc = "Toggle Gundo Tree" },
   { "<leader>o", desc = "Toggle Outline" },
   { "<leader>z", desc = "Zen Mode" },

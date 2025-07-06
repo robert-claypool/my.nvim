@@ -6,6 +6,11 @@ return {
       -- Keep your custom terminal command
       terminal_cmd = "claude --dangerously-skip-permissions",
       
+      -- Set terminal width to ~40% for roughly 80 columns
+      terminal = {
+        split_width_percentage = 0.40,
+      },
+      
       -- Use defaults for everything else
       log_level = "info",
     })
