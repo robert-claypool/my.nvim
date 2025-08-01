@@ -15,9 +15,15 @@ return {
     scroll = { 
       enabled = false,
     },
-    -- Dashboard for quick project access on startup
+    -- Dashboard for quick project access (manually triggered only)
     dashboard = {
-      enabled = true,
+      enabled = false, -- Disabled on startup, use <leader><leader> to open
+      preset = {
+        keys = {
+          { key = "g", desc = "Grep", action = ":Telescope live_grep" },
+          { key = "q", desc = "Quit", action = ":enew" },
+        },
+      },
       sections = {
         { section = "header" },
         { 
@@ -30,17 +36,9 @@ return {
         { 
           section = "recent_files", 
           title = "Recent Files", 
-          limit = 5,
+          limit = 45,
           indent = 2,
-        },
-      },
-      preset = {
-        keys = {
-          { icon = " ", key = "p", desc = "Find Project", action = ":Telescope projects" },
-          { icon = " ", key = "f", desc = "Find File", action = ":Telescope find_files" },
-          { icon = " ", key = "n", desc = "New Buffer", action = ":enew" },
-          { icon = "󰊢 ", key = "c", desc = "Config", action = ":e ~/.config/nvim/init.lua" },
-          { icon = " ", key = "q", desc = "Close Dashboard", action = ":enew" },
+          keys = false,  -- Disable automatic keybindings
         },
       },
     },

@@ -388,6 +388,7 @@ require('lazy').setup({
 -- See `:help vim.o`
 -- NOTE: You can change these options as you wish!
 
+
 -- Highlight the current line
 vim.o.cursorline = true
 
@@ -611,7 +612,8 @@ require('telescope').setup {
       '--column',
       '--smart-case',
       '--hidden',
-      '--glob=!.git/*'
+      '--glob=!.git/*',
+      '--glob=!node_modules/*'
     },
     mappings = {
       i = {
@@ -634,7 +636,13 @@ require('telescope').setup {
       override_generic_sorter = true,
       override_file_sorter = true,
       case_mode = "smart_case",
-    }
+    },
+    frecency = {
+      default_workspace = "CWD",
+      show_scores = false,
+      show_unindexed = true,
+      ignore_patterns = { "*.git/*", "*.cache/*", "node_modules/*" },
+    },
   }
 }
 
@@ -680,6 +688,7 @@ vim.api.nvim_create_user_command('LiveGrepGitRoot', live_grep_git_root, {})
 -- See `:help telescope.builtin`
 vim.keymap.set('n', '<leader>?', require('telescope.builtin').oldfiles, { desc = '[?] Find recently opened files' })
 vim.keymap.set('n', '<leader><space>', require('telescope.builtin').buffers, { desc = '[ ] Find existing buffers' })
+vim.keymap.set('n', '<leader><leader>', function() require('snacks').dashboard() end, { desc = 'Dashboard' })
 vim.keymap.set('n', '<leader>/', function()
   -- You can pass additional configuration to telescope to change theme, layout, etc.
   require('telescope.builtin').current_buffer_fuzzy_find(require('telescope.themes').get_dropdown {
@@ -1035,6 +1044,10 @@ local colors = {
 for i, color in ipairs(colors) do
     vim.api.nvim_command('highlight def BlingWord' .. i .. ' guifg=#000000 ctermfg=16 guibg=' .. color .. ' ctermbg=' .. i + 213)
 end
+
+-- Setup automatic project directory switching
+require('custom.auto-project-cd').setup()
+
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
