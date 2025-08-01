@@ -171,9 +171,26 @@ require('lazy').setup({
   {
     'stevearc/oil.nvim',
     opts = {
-      -- Start with minimal config to use default keymaps
+      -- Skip confirmation for simple edits
+      skip_confirm_for_simple_edits = true,
+      
+      -- Delete to trash instead of permanently
+      delete_to_trash = true,
+      
+      -- Show more file information
+      columns = {
+        "icon",
+        "permissions",
+        "size",
+        "mtime",
+      },
+      
+      -- Watch for external file changes
+      watch_for_changes = true,
+      
+      -- View options
       view_options = {
-        show_hidden = false,
+        show_hidden = true,
       },
     },
     dependencies = { "nvim-tree/nvim-web-devicons" },

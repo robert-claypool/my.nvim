@@ -21,7 +21,8 @@ return {
       preset = {
         keys = {
           { key = "g", desc = "Grep", action = ":Telescope live_grep" },
-          { key = "q", desc = "Quit", action = ":enew" },
+          { key = "q", desc = "Close Dashboard", action = function() vim.cmd('bdelete') end },
+          { key = "<Esc>", desc = "Close Dashboard", action = function() vim.cmd('bdelete') end },
         },
       },
       sections = {
@@ -38,7 +39,6 @@ return {
           title = "Recent Files", 
           limit = 45,
           indent = 2,
-          keys = false,  -- Disable automatic keybindings
         },
       },
     },
