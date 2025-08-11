@@ -725,42 +725,39 @@ vim.keymap.set('n', '<leader>sr', require('telescope.builtin').resume, { desc = 
 
 -- [[ Configure Treesitter ]]
 -- See `:help nvim-treesitter`
+
+-- HACK: Narrow fix for TreeSitter "Invalid 'end_col'" highlighter errors
+-- Wraps nvim_buf_set_extmark but ONLY for TreeSitter's namespace
+-- Safe to remove once upstream is fixed for your env.
+-- Track progress at: https://github.com/neovim/neovim/issues/29550
+
+-- Wrap the API function immediately to catch early TreeSitter initialization
+local orig_set_extmark = vim.api.nvim_buf_set_extmark
+vim.api.nvim_buf_set_extmark = function(buf, ns, line, col, opts)
+  -- Get TreeSitter namespace ID (it's created early and is consistent)
+  local ts_ns = vim.api.nvim_get_namespaces()['nvim.treesitter.highlighter']
+  
+  -- Only apply our workaround to TreeSitter's namespace
+  if ns == ts_ns then
+    local ok_call, res = pcall(orig_set_extmark, buf, ns, line, col, opts)
+    if not ok_call then
+      local msg = tostring(res)
+      if msg:match("Invalid 'end_col'") or msg:match('out of range') then
+        -- Silently ignore these specific errors only for TreeSitter
+        return 0
+      end
+      -- Re-throw other TreeSitter errors
+      error(res)
+    end
+    return res
+  else
+    -- For all other namespaces, call the original function directly
+    return orig_set_extmark(buf, ns, line, col, opts)
+  end
+end
+
 -- Defer Treesitter setup after first render to improve startup time of 'nvim {filename}'
 vim.defer_fn(function()
-  -- HACK: Workaround for TreeSitter highlighter 'Invalid end_col' errors
-  -- 
-  -- This is a known issue in Neovim since 2020 where TreeSitter's highlighter
-  -- miscalculates column positions in certain edge cases:
-  -- - When tab characters are used (byte offset vs display column mismatch)
-  -- - During line deletion/editing (stale position references)
-  -- - When nodes end at column 0 (range calculation edge case)
-  --
-  -- The error manifests as a popup loop that can cause data loss by preventing
-  -- normal editor operations. This wrapper catches and suppresses these specific
-  -- errors while allowing other errors to propagate normally.
-  --
-  -- This is a temporary fix until the upstream issue is resolved in Neovim core.
-  -- Track progress at: https://github.com/neovim/neovim/issues/29550
-  --
-  -- To remove this hack: Delete this entire block when the issue is fixed upstream
-  local ok, ts_highlight = pcall(require, 'vim.treesitter.highlighter')
-  if ok and ts_highlight.new then
-    local old_new = ts_highlight.new
-    ts_highlight.new = function(...)
-      local highlighter = old_new(...)
-      local old_on_line = highlighter.on_line
-      highlighter.on_line = function(self, ...)
-        local ok, err = pcall(old_on_line, self, ...)
-        if not ok and err:match("Invalid 'end_col'") then
-          -- Silently ignore the error
-          return
-        elseif not ok then
-          error(err)
-        end
-      end
-      return highlighter
-    end
-  end
 
   require('nvim-treesitter.configs').setup {
     -- Add languages to be installed here that you want installed for treesitter
@@ -1036,7 +1033,7 @@ _G.blingWord = function(n)
     local word = vim.fn.getreg('z')
 
     -- Escape the word for use in a Lua pattern
-    local escaped_word = vim.fn.escape(word, '\\')
+    local escaped_word = vim.pesc(word)
 
     -- Function to apply highlighting in a buffer
     local function applyHighlight(buf)
@@ -1073,6 +1070,9 @@ vim.api.nvim_set_keymap('n', '<localleader>h0', ':lua vim.fn.clearmatches()<CR>:
 for i = 1, 6 do
     vim.api.nvim_set_keymap('n', '<localleader>h' .. i, ':lua blingWord(' .. i .. ')<CR>', { noremap = true, silent = true })
 end
+
+-- Safety toggle for TreeSitter highlighting if issues occur
+vim.keymap.set('n', '<localleader>th', ':TSBufToggle highlight<CR>', { desc = 'Toggle TS highlight for this buffer' })
 
 -- Claude Code Editor keymaps
 -- TODO: Move these to claude-code.nvim plugin when implementing PR
