@@ -4,3 +4,6 @@ test.sh
 nvim
 .claude
 .DS_Store
+.keystone/local/
+.keystone/lock
+.keystone/*.lock

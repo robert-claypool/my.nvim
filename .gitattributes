@@ -1,0 +1,3 @@
+.keystone/stones/*.md text eol=lf
+.keystone/stones/**/*.md text eol=lf
+.keystone/charter.md text eol=lf
