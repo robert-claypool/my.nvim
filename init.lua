@@ -42,7 +42,6 @@ require('lazy').setup({
       -- Disable default bindings and keep explicit keymaps.
       vim.g.codeium_disable_bindings = 1
 
-      vim.keymap.set('i', '<Tab>', function() return vim.fn['codeium#Accept']() end, { expr = true, silent = true })
       vim.keymap.set('i', '<C-g>', function() return vim.fn['codeium#Accept']() end, { expr = true, silent = true })
       vim.keymap.set('i', '<C-]>', function() return vim.fn['codeium#CycleCompletions'](1) end, { expr = true, silent = true })
       vim.keymap.set('i', '<M-[>', function() return vim.fn['codeium#CycleCompletions'](-1) end, { expr = true, silent = true })
@@ -209,11 +208,32 @@ require('lazy').setup({
       -- NOTE: `opts = {}` is the same as calling `require('fidget').setup({})`
       { 'j-hui/fidget.nvim', opts = {} },
 
-      -- Additional lua configuration, makes nvim stuff amazing!
-      'folke/neodev.nvim',
+      -- Lua dev experience for Neovim config and plugin authoring.
+      {
+        'folke/lazydev.nvim',
+        ft = 'lua',
+        opts = {
+          library = {
+            { path = '${3rd}/luv/library', words = { 'vim%.uv' } },
+          },
+        },
+      },
     },
   },
 
+  {
+    'saghen/blink.cmp',
+    version = '*',
+    event = 'InsertEnter',
+    opts = {
+      keymap = { preset = 'default' },
+      completion = { documentation = { auto_show = true } },
+      sources = {
+        default = { 'lsp', 'path', 'snippets', 'buffer' },
+      },
+    },
+    opts_extend = { 'sources.default' },
+  },
 
   -- Useful plugin to show you pending keybinds.
   { 'folke/which-key.nvim', opts = {} },
@@ -355,27 +375,6 @@ require('lazy').setup({
   -- "gc" to comment visual regions/lines
   { 'numToStr/Comment.nvim', opts = {} },
 
-  -- Fuzzy Finder (files, lsp, etc)
-  {
-    'nvim-telescope/telescope.nvim',
-    branch = '0.1.x',
-    dependencies = {
-      'nvim-lua/plenary.nvim',
-      -- Fuzzy Finder Algorithm which requires local dependencies to be built.
-      -- Only load if `make` is available. Make sure you have the system
-      -- requirements installed.
-      {
-        'nvim-telescope/telescope-fzf-native.nvim',
-        -- NOTE: If you are having trouble with this installation,
-        --       refer to the README for telescope-fzf-native for more instructions.
-        build = 'make',
-        cond = function()
-          return vim.fn.executable 'make' == 1
-        end,
-      },
-    },
-  },
-
   {
     -- Highlight, edit, and navigate code
     'nvim-treesitter/nvim-treesitter',
@@ -446,7 +445,7 @@ vim.o.synmaxcol = 5000
 -- Start scrolling a few lines before the border (more context around the cursor)
 vim.o.scrolloff = 4
 
--- Start horz scrolling a few columns before the border 098 098 098 098 09809 234203498 092384 00980234 09 23409 230498 234098 234098809 234098 er908
+-- Start horizontal scrolling a few columns before the border
 vim.o.sidescrolloff = 4
 
 -- Hide mode (e.g. '-- INSERT ----') in the command line because it's in the status line
@@ -516,7 +515,7 @@ vim.opt.listchars:append({ eol = '$' })
 vim.opt.listchars:append({ extends = '→' })
 
 -- Show or hide special characters
-vim.keymap.set('n', '<localleader>ts', ':set list!<cr>|', { desc = '[T]oggle [s]pecial characters' })
+vim.keymap.set('n', '<localleader>ts', ':set list!<cr>', { desc = '[T]oggle [s]pecial characters' })
 
 
 -- Oil.nvim (same key binding as neo-tree)
@@ -617,146 +616,31 @@ vim.api.nvim_create_autocmd('TermOpen', {
   desc = 'Set large scrollback buffer for terminals',
 })
 
--- [[ Configure Telescope ]]
--- See `:help telescope` and `:help telescope.setup()`
-require('telescope').setup {
-  defaults = {
-    -- Use ripgrep with smart settings
-    vimgrep_arguments = {
-      'rg',
-      '--color=never',
-      '--no-heading',
-      '--with-filename',
-      '--line-number',
-      '--column',
-      '--smart-case',
-      '--hidden',
-      '--glob=!.git/*',
-      '--glob=!node_modules/*'
-    },
-    mappings = {
-      i = {
-        ['<C-u>'] = false,
-        ['<C-d>'] = false,
-        ['jj'] = { '<Esc>', type = 'command' },
-      },
-    },
-    file_ignore_patterns = { 'node_modules', '.git/', '.cache' },
-    layout_strategy = 'flex',
-  },
-  pickers = {
-    find_files = {
-      hidden = true,
-    },
-  },
-  extensions = {
-    fzf = {
-      fuzzy = true,
-      override_generic_sorter = true,
-      override_file_sorter = true,
-      case_mode = "smart_case",
-    },
-    frecency = {
-      default_workspace = "CWD",
-      show_scores = false,
-      show_unindexed = true,
-      ignore_patterns = { "*.git/*", "*.cache/*", "node_modules/*" },
-    },
-  }
-}
-
--- Enable telescope fzf native, if installed
-pcall(require('telescope').load_extension, 'fzf')
-
--- Telescope live_grep in git root
--- Function to find the git root directory based on the current buffer's path
-local function find_git_root()
-  -- Use the current buffer's path as the starting point for the git search
-  local current_file = vim.api.nvim_buf_get_name(0)
-  local current_dir
-  local cwd = vim.fn.getcwd()
-  -- If the buffer is not associated with a file, return nil
-  if current_file == "" then
-    current_dir = cwd
-  else
-    -- Extract the directory from the current file's path
-    current_dir = vim.fn.fnamemodify(current_file, ":h")
-  end
-
-  -- Find the Git root directory from the current file's path
-  local git_root = vim.fn.systemlist("git -C " .. vim.fn.escape(current_dir, " ") .. " rev-parse --show-toplevel")[1]
-  if vim.v.shell_error ~= 0 then
-    print("Not a git repository. Searching on current working directory")
-    return cwd
-  end
-  return git_root
+-- [[ Configure Snacks Picker ]]
+local function project_root()
+  local bufname = vim.api.nvim_buf_get_name(0)
+  local start = bufname ~= '' and vim.fs.dirname(bufname) or vim.uv.cwd()
+  return vim.fs.root(start, { '.git', '.hg', '.svn' }) or vim.uv.cwd()
 end
 
--- Custom live_grep function to search in git root
-local function live_grep_git_root()
-  local git_root = find_git_root()
-  if git_root then
-    require('telescope.builtin').live_grep({
-      search_dirs = {git_root},
-    })
-  end
-end
-
-vim.api.nvim_create_user_command('LiveGrepGitRoot', live_grep_git_root, {})
-
--- See `:help telescope.builtin`
-vim.keymap.set('n', '<leader>?', require('telescope.builtin').oldfiles, { desc = '[?] Find recently opened files' })
-vim.keymap.set('n', '<leader><space>', require('telescope.builtin').buffers, { desc = '[ ] Find existing buffers' })
+vim.keymap.set('n', '<leader>?', function() Snacks.picker.recent() end, { desc = '[?] Find recently opened files' })
+vim.keymap.set('n', '<leader><space>', function() Snacks.picker.buffers() end, { desc = '[ ] Find existing buffers' })
 vim.keymap.set('n', '<leader><leader>', function() require('snacks').dashboard() end, { desc = 'Dashboard' })
-vim.keymap.set('n', '<leader>/', function()
-  -- You can pass additional configuration to telescope to change theme, layout, etc.
-  require('telescope.builtin').current_buffer_fuzzy_find(require('telescope.themes').get_dropdown {
-    winblend = 10,
-    previewer = false,
-  })
-end, { desc = '[/] Fuzzily search in current buffer' })
+vim.keymap.set('n', '<leader>/', function() Snacks.picker.lines() end, { desc = '[/] Fuzzily search in current buffer' })
 
-vim.keymap.set('n', '<leader>gf', require('telescope.builtin').git_files, { desc = 'Search [G]it [F]iles' })
-vim.keymap.set('n', '<leader>sf', require('telescope.builtin').find_files, { desc = '[S]earch [F]iles' })
-vim.keymap.set('n', '<leader>sh', require('telescope.builtin').help_tags, { desc = '[S]earch [H]elp' })
-vim.keymap.set('n', '<leader>sw', require('telescope.builtin').grep_string, { desc = '[S]earch current [W]ord' })
-vim.keymap.set('n', '<leader>sg', require('telescope.builtin').live_grep, { desc = '[S]earch by [G]rep' })
-vim.keymap.set('n', '<leader>sG', ':LiveGrepGitRoot<cr>', { desc = '[S]earch by [G]rep on Git Root' })
-vim.keymap.set('n', '<leader>sd', require('telescope.builtin').diagnostics, { desc = '[S]earch [D]iagnostics' })
-vim.keymap.set('n', '<leader>sr', require('telescope.builtin').resume, { desc = '[S]earch [R]esume' })
+vim.keymap.set('n', '<leader>ff', function() Snacks.picker.files({ cwd = project_root() }) end, { desc = '[F]ind [F]iles' })
+vim.keymap.set('n', '<leader>fp', function() Snacks.picker.projects() end, { desc = '[F]ind [P]rojects' })
+vim.keymap.set('n', '<leader>gf', function() Snacks.picker.git_files({ cwd = project_root() }) end, { desc = 'Search [G]it [F]iles' })
+vim.keymap.set('n', '<leader>sf', function() Snacks.picker.files({ cwd = project_root() }) end, { desc = '[S]earch [F]iles' })
+vim.keymap.set('n', '<leader>sh', function() Snacks.picker.help() end, { desc = '[S]earch [H]elp' })
+vim.keymap.set({ 'n', 'x' }, '<leader>sw', function() Snacks.picker.grep_word({ cwd = project_root() }) end, { desc = '[S]earch current [W]ord' })
+vim.keymap.set('n', '<leader>sg', function() Snacks.picker.grep({ cwd = project_root() }) end, { desc = '[S]earch by [G]rep' })
+vim.keymap.set('n', '<leader>sG', function() Snacks.picker.grep({ cwd = project_root() }) end, { desc = '[S]earch by [G]rep on project root' })
+vim.keymap.set('n', '<leader>sd', function() Snacks.picker.diagnostics() end, { desc = '[S]earch [D]iagnostics' })
+vim.keymap.set('n', '<leader>sr', function() Snacks.picker.resume() end, { desc = '[S]earch [R]esume' })
 
 -- [[ Configure Treesitter ]]
 -- See `:help nvim-treesitter`
-
--- HACK: Narrow fix for TreeSitter "Invalid 'end_col'" highlighter errors
--- Wraps nvim_buf_set_extmark but ONLY for TreeSitter's namespace
--- Safe to remove once upstream is fixed for your env.
--- Track progress at: https://github.com/neovim/neovim/issues/29550
-
--- Wrap the API function immediately to catch early TreeSitter initialization
-local orig_set_extmark = vim.api.nvim_buf_set_extmark
-vim.api.nvim_buf_set_extmark = function(buf, ns, line, col, opts)
-  -- Get TreeSitter namespace ID (it's created early and is consistent)
-  local ts_ns = vim.api.nvim_get_namespaces()['nvim.treesitter.highlighter']
-  
-  -- Only apply our workaround to TreeSitter's namespace
-  if ns == ts_ns then
-    local ok_call, res = pcall(orig_set_extmark, buf, ns, line, col, opts)
-    if not ok_call then
-      local msg = tostring(res)
-      if msg:match("Invalid 'end_col'") or msg:match('out of range') then
-        -- Silently ignore these specific errors only for TreeSitter
-        return 0
-      end
-      -- Re-throw other TreeSitter errors
-      error(res)
-    end
-    return res
-  else
-    -- For all other namespaces, call the original function directly
-    return orig_set_extmark(buf, ns, line, col, opts)
-  end
-end
 
 -- Defer Treesitter setup after first render to improve startup time of 'nvim {filename}'
 vim.defer_fn(function()
@@ -850,10 +734,10 @@ vim.defer_fn(function()
       swap = {
         enable = true,
         swap_next = {
-          ['<leader>a'] = '@parameter.inner',
+          [']a'] = '@parameter.inner',
         },
         swap_previous = {
-          ['<leader>A'] = '@parameter.inner',
+          ['[a'] = '@parameter.inner',
         },
       },
     },
@@ -880,16 +764,16 @@ local on_attach = function(_, bufnr)
   nmap('<leader>rn', vim.lsp.buf.rename, '[R]e[n]ame')
   nmap('<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction')
 
-  nmap('gd', require('telescope.builtin').lsp_definitions, '[G]oto [D]efinition')
-  nmap('gr', require('telescope.builtin').lsp_references, '[G]oto [R]eferences')
-  nmap('gI', require('telescope.builtin').lsp_implementations, '[G]oto [I]mplementation')
-  nmap('<leader>D', require('telescope.builtin').lsp_type_definitions, 'Type [D]efinition')
-  nmap('<leader>ds', require('telescope.builtin').lsp_document_symbols, '[D]ocument [S]ymbols')
-  nmap('<leader>ws', require('telescope.builtin').lsp_dynamic_workspace_symbols, '[W]orkspace [S]ymbols')
+  nmap('gd', function() Snacks.picker.lsp_definitions() end, '[G]oto [D]efinition')
+  nmap('gr', function() Snacks.picker.lsp_references() end, '[G]oto [R]eferences')
+  nmap('gI', function() Snacks.picker.lsp_implementations() end, '[G]oto [I]mplementation')
+  nmap('<leader>D', function() Snacks.picker.lsp_type_definitions() end, 'Type [D]efinition')
+  nmap('<leader>ds', function() Snacks.picker.lsp_symbols() end, '[D]ocument [S]ymbols')
+  nmap('<leader>ws', function() Snacks.picker.lsp_workspace_symbols() end, '[W]orkspace [S]ymbols')
 
   -- See `:help K` for why this keymap
   nmap('K', vim.lsp.buf.hover, 'Hover Documentation')
-  nmap('<C-k>', vim.lsp.buf.signature_help, 'Signature Documentation')
+  nmap('gK', vim.lsp.buf.signature_help, 'Signature Documentation')
 
   -- Lesser used LSP functionality
   nmap('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
@@ -900,7 +784,7 @@ local on_attach = function(_, bufnr)
   end, '[W]orkspace [L]ist Folders')
 
   -- Add format keymap
-  nmap('<leader>f', vim.lsp.buf.format, '[F]ormat code')
+  nmap('<leader>cf', vim.lsp.buf.format, '[C]ode [F]ormat')
   
   -- Create a command `:Format` local to the LSP buffer
   vim.api.nvim_buf_create_user_command(bufnr, 'Format', function(_)
@@ -932,7 +816,6 @@ require('which-key').add({
   { "<leader>n_", hidden = true },
   { "<leader>t", group = "Theme" },
   { "<leader>t_", hidden = true },
-  { "<leader>A", hidden = true }, -- Hide swap previous parameter
   { "<leader>1", hidden = true }, -- Hide harpoon file 1
   { "<leader>2", hidden = true }, -- Hide harpoon file 2
   { "<leader>3", hidden = true }, -- Hide harpoon file 3
@@ -947,10 +830,8 @@ require('which-key').add({
   { "<leader>/", desc = "Search Current Buffer" }
 })
 
--- mason-lspconfig requires that these setup functions are called in this order
--- before setting up the servers.
 require('mason').setup()
-require('mason-lspconfig').setup()
+local mason_lspconfig = require 'mason-lspconfig'
 
 -- Enable the following language servers
 --  Feel free to add/remove any LSPs that you want here. They will automatically be installed.
@@ -978,51 +859,31 @@ local servers = {
   },
 }
 
--- Setup neovim lua configuration
-require('neodev').setup()
-
 -- Setup basic LSP capabilities
 local capabilities = vim.lsp.protocol.make_client_capabilities()
-
--- Ensure the servers above are installed
-local mason_lspconfig = require 'mason-lspconfig'
+local blink_ok, blink = pcall(require, 'blink.cmp')
+if blink_ok then
+  capabilities = blink.get_lsp_capabilities(capabilities)
+end
 
 mason_lspconfig.setup {
   ensure_installed = vim.tbl_keys(servers),
-  handlers = {
-    function(server_name)
-      require('lspconfig')[server_name].setup {
-        capabilities = capabilities,
-        on_attach = on_attach,
-        settings = servers[server_name],
-        filetypes = (servers[server_name] or {}).filetypes,
-      }
-    end,
-  }
 }
 
+vim.lsp.config('*', {
+  capabilities = capabilities,
+  on_attach = on_attach,
+})
 
--- Define the function that will change the background for the
--- active and inactive panes using Vimscript
-local set_background = function ()
-  vim.cmd [[
-    augroup ChangeActivePaneBackground
-      autocmd!
-      " For active pane
-      autocmd WinEnter,BufEnter * setlocal winhighlight=Normal:ActivePane,NormalNC:InactivePane
-      " For inactive pane
-      autocmd WinLeave,BufLeave * setlocal winhighlight=Normal:InactivePane,NormalNC:InactivePane
-    augroup END
-  ]]
+for server_name, server_settings in pairs(servers) do
+  vim.lsp.config(server_name, {
+    settings = server_settings,
+    filetypes = server_settings.filetypes,
+  })
 end
 
--- Call the function to set up the commands
-set_background()
+vim.lsp.enable(vim.tbl_keys(servers))
 
--- Highlight group for active pane background
-vim.cmd 'highlight ActivePane guibg=#010f1b'
--- Highlight group for inactive pane background
-vim.cmd 'highlight InactivePane guibg=#011627'
 
 -- Create a namespace for extmarks
 local ns_id = vim.api.nvim_create_namespace('blingWordHighlights')
@@ -1087,10 +948,6 @@ local colors = {
 for i, color in ipairs(colors) do
     vim.api.nvim_command('highlight def BlingWord' .. i .. ' guifg=#000000 ctermfg=16 guibg=' .. color .. ' ctermbg=' .. i + 213)
 end
-
--- Setup automatic project directory switching
-require('custom.auto-project-cd').setup()
-
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et

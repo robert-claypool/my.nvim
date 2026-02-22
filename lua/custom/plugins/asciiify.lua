@@ -7,8 +7,8 @@
 --  • …   → ...
 --
 -- Key-maps
---   <leader>qi  – interactive (y/n/a/q per class)
---   <leader>qa  – ask once, then replace all silently
+--   <leader>tqi – interactive (y/n/a/q per class)
+--   <leader>tqa – ask once, then replace all silently
 --
 -- Commands
 --   :Asciiify        – interactive
@@ -41,18 +41,18 @@ vim.api.nvim_create_user_command('Asciiify', function(opts)
 end, { bang = true, desc = 'Convert smart quotes / dashes to ASCII' })
 
 -- Key-mappings ---------------------------------------------------------------
-vim.keymap.set('n', '<leader>qi', function() asciiify(true) end,
-  { desc = '[Q]uotes: [I]nteractive asciiify' })
+vim.keymap.set('n', '<leader>tqi', function() asciiify(true) end,
+  { desc = '[T]ext [Q]uotes: [I]nteractive asciiify' })
 
-vim.keymap.set('n', '<leader>qa', function()
+vim.keymap.set('n', '<leader>tqa', function()
   local ok = vim.fn.confirm('Convert smart typography to ASCII?', '&Yes\n&No', 2)
   if ok == 1 then asciiify(false) end
-end, { desc = '[Q]uotes: [A]ll asciiify' })
+end, { desc = '[T]ext [Q]uotes: [A]ll asciiify' })
 
--- which-key label for the "q" group (safe if which-key not installed)
+-- which-key label for the "tq" group (safe if which-key not installed)
 pcall(function()
   require('which-key').add({
-    { "<leader>q", group = "[Q]uote fixes" },
+    { "<leader>tq", group = "[T]ext [Q]uote fixes" },
   })
 end)
 

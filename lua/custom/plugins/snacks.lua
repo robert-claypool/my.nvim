@@ -11,6 +11,8 @@ return {
     },
     -- Smart buffer deletion that preserves window layouts
     bufdelete = { enabled = true },
+    -- Primary picker layer for files/grep/help/LSP navigation
+    picker = { enabled = true },
     -- Never enable smooth scrolling - makes cursor movement very slow
     scroll = { 
       enabled = false,
@@ -20,7 +22,7 @@ return {
       enabled = false, -- Disabled on startup, use <leader><leader> to open
       preset = {
         keys = {
-          { key = "g", desc = "Grep", action = ":Telescope live_grep" },
+          { key = "g", desc = "Grep", action = function() Snacks.picker.grep() end },
           { key = "q", desc = "Close Dashboard", action = function() vim.cmd('bdelete') end },
           { key = "<Esc>", desc = "Close Dashboard", action = function() vim.cmd('bdelete') end },
         },

@@ -25,8 +25,8 @@ Distribution Alternatives:
 
 Requirements:
 * Make sure to review the readmes of the plugins if you are experiencing errors. In particular:
-  * [ripgrep](https://github.com/BurntSushi/ripgrep#installation) is required for multiple [telescope](https://github.com/nvim-telescope/telescope.nvim#suggested-dependencies) pickers.
-* See [Windows Installation](#Windows-Installation) if you have trouble with `telescope-fzf-native`
+  * [ripgrep](https://github.com/BurntSushi/ripgrep#installation) is required for Snacks grep pickers.
+* See [Windows Installation](#Windows-Installation) for platform setup notes.
 
 Neovim's configurations are located under the following paths, depending on your OS:
 
@@ -177,15 +177,17 @@ Each PR, especially those which increase the line count, should have a descripti
 
 ### Windows Installation
 
-Installation may require installing build tools, and updating the run command for `telescope-fzf-native`
+This configuration no longer depends on `telescope-fzf-native`, so there is no picker-specific C/C++ build step.
 
-See `telescope-fzf-native` documentation for [more details](https://github.com/nvim-telescope/telescope-fzf-native.nvim#installation)
+Recommended prerequisites on Windows:
 
-This requires:
+- Neovim `stable`
+- Git
+- ripgrep
 
-- Install CMake, and the Microsoft C++ Build Tools on Windows
+If plugin installation fails, run:
 
-```lua
-{'nvim-telescope/telescope-fzf-native.nvim', build = 'cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release && cmake --install build --prefix build' }
+```sh
+nvim --headless "+Lazy! sync" +qa
 ```
 

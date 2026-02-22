@@ -2,12 +2,13 @@
 schema: v1
 id: 3wc0k2
 title: Neovim UX Upgrade Blueprint
-status: open
+status: closed
 type: task
 priority: p1
 deps: []
 tags: [config, lsp, neovim, performance, roadmap, treesitter, ux]
 created_at: "2026-02-22T21:34:04Z"
+closed_at: "2026-02-22T23:38:14Z"
 ---
 <!-- ksmem:managed: direct edits bypass validation; use ksmem commands -->
 Blueprint for modernizing this Neovim setup to improve day-to-day UX while minimizing breakage. This stone is the locked implementation blueprint.
@@ -22,13 +23,13 @@ Deliver a modern, predictable Neovim UX on `v0.11.6` for this config while prese
 2. Current startup samples (headless):
    - Empty: ~`96.8ms`
    - Open file (`README.md`): ~`113.4ms`
-3. Current stack includes `lazy.nvim`, Telescope, Snacks, project auto-cd logic, Codeium, Treesitter, and Mason/LSP.
+3. Current stack includes `lazy.nvim`, Snacks pickers/utilities, Codeium, Treesitter, and Mason/LSP.
 
 ### Target architecture
 1. LSP on Neovim 0.11 native model (`vim.lsp.config` + `vim.lsp.enable`) with Mason installation flows.
 2. Deterministic completion via `blink.cmp`, with AI completion preserved on non-Tab acceptance keys.
 3. Root-aware operations with no global auto-`cd`.
-4. Telescope-first picker UX (Snacks kept for utility modules, not primary pickers).
+4. Snacks-first picker UX with one unified picker interface for files, grep, and LSP navigation.
 5. Stable keymap taxonomy by namespace (`<leader>f`, `<leader>q`, `<leader>a`, `<C-k>`).
 6. Theme-coherent UI with no hardcoded structural hex colors.
 7. Startup UX policy: launching `nvim` shows an empty working buffer (not a welcome/dashboard buffer); launching `nvim <file>` opens the requested file directly.
@@ -74,9 +75,9 @@ Deliver a modern, predictable Neovim UX on `v0.11.6` for this config while prese
 
 ### Phase 3: Root and picker simplification
 1. Finalize root-aware/no-global-cd behavior.
-2. Keep Telescope as primary picker system.
-3. Remove overlapping root-management and picker complexity that is no longer needed after Phase 1/2.
-4. Keep Snacks utility modules only; avoid dual primary picker paradigms.
+2. Use Snacks as the primary picker system.
+3. Remove legacy Telescope-related dependencies and mappings no longer needed after migration.
+4. Keep one picker paradigm (Snacks) to reduce cognitive load and maintenance overhead.
 
 ### Phase 4: UX polish and stabilization
 1. Align theme behavior across dark/light variants with policy-compliant highlights.
@@ -122,9 +123,9 @@ Deliver a modern, predictable Neovim UX on `v0.11.6` for this config while prese
    - Remove competing root authorities (`project.nvim` auto-cd + custom auto-project-cd).
 
 4. Picker architecture policy
-   - Use Telescope-first picker architecture for a simpler learning path from current baseline.
-   - Keep Snacks for utility modules only (notifier, bufdelete, zen, etc.).
-   - Defer any Snacks-picker migration to a separate future blueprint.
+   - Use Snacks-first picker architecture for a simpler and easier-to-learn day-to-day UX.
+   - Consolidate pickers and utility modules on Snacks to avoid split workflows.
+   - Remove legacy Telescope stack once Snacks keymaps and workflows are validated.
 
 5. Keymap taxonomy policy
    - `<leader>f` = find/pickers only.
@@ -169,20 +170,25 @@ Deliver a modern, predictable Neovim UX on `v0.11.6` for this config while prese
 
 ### Files of interest
 1. `init.lua`
-2. `lua/custom/plugins/project.lua`
-3. `lua/custom/auto-project-cd.lua`
-4. `lua/custom/plugins/claude-code.lua`
-5. `lua/custom/plugins/asciiify.lua`
-6. `lua/custom/plugins/snacks.lua`
-7. `lazy-lock.json`
+2. `lua/custom/plugins/asciiify.lua`
+3. `lua/custom/plugins/snacks.lua`
+4. `lazy-lock.json`
+5. `.keystone/stones/active/task/3/w/3wc0k2-neovim-ux-upgrade-blueprint.md`
 
 ### Validation strategy
 1. Use phase-by-phase startup measurements with median comparison.
 2. Run workflow smoke checks after each phase.
 3. Keep each phase independently revertable.
 
+Validation snapshot after implementation slices:
+- `nvim --headless '+qa'` passes.
+- `nvim --headless README.md '+qa'` passes.
+- Startuptime sample: empty launch `93.592ms`; file launch `93.207ms` (`--- NVIM STARTED ---` lines from `/tmp/nvim-startup-empty.log` and `/tmp/nvim-startup-file.log`).
+
 ## Journal
 
+
+- 2026-02-22T22:46:10Z | slice 2 complete: removed competing global auto-cd mechanisms (deleted `lua/custom/auto-project-cd.lua`, removed `project.nvim` plugin config) and updated `lazy-lock.json`.
 
 - 2026-02-22T21:34:32Z | rewrote section context (old_lines=0 new_lines=31): Populate review context and baseline for Neovim UX blueprint.
 
@@ -214,5 +220,19 @@ Deliver a modern, predictable Neovim UX on `v0.11.6` for this config while prese
 
 - 2026-02-22T22:45:36Z | rewrote section plan (old_lines=63 new_lines=62): Update implementation plan to Telescope-first and explicit startup behavior checks.
 
+- 2026-02-22T23:32:32Z | slice 3 complete: removed TreeSitter extmark monkey patch and hardcoded ActivePane/InactivePane pane highlight/autocmd block from init.lua
+
+- 2026-02-22T23:33:22Z | slice 1 complete: keymap ownership cleanup landed (`<C-k>` -> split only; LSP signature help on `gK`; LSP format on `<leader>cf`; Treesitter swap moved to `[a`/`]a`; Asciiify moved to `<leader>tq*`; removed unconditional Codeium `<Tab>` accept)
+
+- 2026-02-22T23:33:26Z | slice 4a complete: replaced `neodev` with `lazydev` and added `blink.cmp` baseline config plus LSP capabilities integration hook
+
+- 2026-02-22T23:33:58Z | slice 4b complete: migrated LSP setup from deprecated `lspconfig.setup` handlers to Neovim 0.11 native `vim.lsp.config` + `vim.lsp.enable`, keeping Mason ensure_installed flow
+
+- 2026-02-22T23:36:43Z | slice 5 complete: migrated picker workflows to Snacks-first (`Snacks.picker.*` keymaps + LSP picker navigation), removed Telescope stack and frecency plugin, and updated lockfile accordingly
+
+- 2026-02-22T23:38:14Z | Implemented UX blueprint slices: keymap ownership cleanup, global auto-cd removal, TreeSitter/pane debt cleanup, lazydev+blink completion baseline, Neovim 0.11 native LSP migration, Snacks-first picker migration, and validation checks.
+
 ## Lessons
+
+- For ksmem-managed stones, avoid delegated large markdown rewrites; update progress with ksmem note/rewrite tools to prevent accidental corruption and preserve schema integrity.
 
