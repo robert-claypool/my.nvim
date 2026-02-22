@@ -34,21 +34,20 @@ require('lazy').setup({
   'tpope/vim-surround',
   'tpope/vim-repeat',  -- Enable repeating supported plugin maps with "."
 
-  -- AI assistant - Codeium (better than Copilot, free)
+  -- AI autocomplete: Codeium
   {
-    "Exafunction/codeium.vim",
+    'Exafunction/codeium.vim',
     event = 'BufEnter',
-    config = function ()
-      -- Disable default bindings
+    config = function()
+      -- Disable default bindings and keep explicit keymaps.
       vim.g.codeium_disable_bindings = 1
-      
-      -- Set up our own keybindings
+
       vim.keymap.set('i', '<Tab>', function() return vim.fn['codeium#Accept']() end, { expr = true, silent = true })
       vim.keymap.set('i', '<C-g>', function() return vim.fn['codeium#Accept']() end, { expr = true, silent = true })
       vim.keymap.set('i', '<C-]>', function() return vim.fn['codeium#CycleCompletions'](1) end, { expr = true, silent = true })
       vim.keymap.set('i', '<M-[>', function() return vim.fn['codeium#CycleCompletions'](-1) end, { expr = true, silent = true })
       vim.keymap.set('i', '<C-x>', function() return vim.fn['codeium#Clear']() end, { expr = true, silent = true })
-    end
+    end,
   },
 
   -- Navigation within files - Hop (the community favorite EasyMotion replacement)
@@ -933,8 +932,6 @@ require('which-key').add({
   { "<leader>n_", hidden = true },
   { "<leader>t", group = "Theme" },
   { "<leader>t_", hidden = true },
-  { "<leader>a", group = "AI/Claude Code" },
-  { "<leader>a_", hidden = true },
   { "<leader>A", hidden = true }, -- Hide swap previous parameter
   { "<leader>1", hidden = true }, -- Hide harpoon file 1
   { "<leader>2", hidden = true }, -- Hide harpoon file 2
@@ -1077,15 +1074,6 @@ end
 -- Safety toggle for TreeSitter highlighting if issues occur
 vim.keymap.set('n', '<localleader>th', ':TSBufToggle highlight<CR>', { desc = 'Toggle TS highlight for this buffer' })
 
--- Claude Code Editor keymaps
--- TODO: Move these to claude-code.nvim plugin when implementing PR
--- vim.keymap.set('n', '<leader>ce', function() 
---   require('custom.claude-code-editor').edit_for_claude() 
--- end, { desc = 'Claude Code [e]ditor' })
--- 
--- vim.keymap.set('v', '<leader>cs', function() 
---   require('custom.claude-code-editor').send_visual_to_claude() 
--- end, { desc = 'Claude Code [s]end selection' })
 
 -- Highlight definitions
 local colors = {
