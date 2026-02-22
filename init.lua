@@ -453,6 +453,9 @@ vim.o.sidescrolloff = 4
 -- Hide mode (e.g. '-- INSERT ----') in the command line because it's in the status line
 vim.o.showmode = false
 
+-- Disable the startup intro screen so plain `nvim` starts on a clean empty buffer
+vim.opt.shortmess:append 'I'
+
 -- Case-insensitive searching UNLESS \C or capital in search
 vim.o.ignorecase = true
 vim.o.smartcase = true
