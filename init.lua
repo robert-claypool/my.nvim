@@ -372,8 +372,41 @@ require('lazy').setup({
     opts = {},
   },
 
-  -- "gc" to comment visual regions/lines
-  { 'numToStr/Comment.nvim', opts = {} },
+  -- "gc"/"gcc" to comment lines; block mappings are intentionally disabled
+  {
+    'numToStr/Comment.nvim',
+    opts = {
+      mappings = {
+        basic = false,
+        extra = true,
+      },
+    },
+    config = function(_, opts)
+      require('Comment').setup(opts)
+
+      local ft = require('Comment.ft')
+      ft.set('sh', { '#%s', '#%s' })
+      ft.set('bash', { '#%s', '#%s' })
+      ft.set('zsh', { '#%s', '#%s' })
+
+      -- Keep linewise comment UX while removing blockwise warning paths.
+      vim.keymap.set('n', 'gc', '<Plug>(comment_toggle_linewise)', {
+        remap = true,
+        desc = 'Comment toggle linewise',
+      })
+      vim.keymap.set('x', 'gc', '<Plug>(comment_toggle_linewise_visual)', {
+        remap = true,
+        desc = 'Comment toggle linewise (visual)',
+      })
+      vim.keymap.set('n', 'gcc', function()
+        return vim.v.count == 0 and '<Plug>(comment_toggle_linewise_current)' or '<Plug>(comment_toggle_linewise_count)'
+      end, {
+        expr = true,
+        remap = true,
+        desc = 'Comment toggle current line',
+      })
+    end,
+  },
 
   {
     -- Highlight, edit, and navigate code

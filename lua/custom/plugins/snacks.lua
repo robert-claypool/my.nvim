@@ -6,7 +6,7 @@ return {
     -- Enhanced notifications that don't block your view
     notifier = { 
       enabled = true,
-      timeout = 3000,
+      timeout = 12000,
       style = "compact",
     },
     -- Smart buffer deletion that preserves window layouts
