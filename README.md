@@ -1,4 +1,4 @@
-# Neovim Config (Daily Driver)
+# Daily Driver Neovim Config
 
 This started as a Kickstart.nvim fork and is now a heavily customized Neovim setup focused on a fast, predictable workflow.
 
