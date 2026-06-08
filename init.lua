@@ -491,8 +491,8 @@ vim.opt.shortmess:append 'I'
 vim.o.ignorecase = true
 vim.o.smartcase = true
 
--- Wrapping is ugly, off by default
-vim.o.wrap = false
+-- Wrap long lines by default
+vim.o.wrap = true
 
 -- But if you switch from nowrap to wrap, try not to wrap in the middle of words
 vim.o.linebreak = true
