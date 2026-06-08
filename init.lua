@@ -49,29 +49,18 @@ require('lazy').setup({
     end,
   },
 
-  -- Navigation within files - Hop (the community favorite EasyMotion replacement)
+  -- Fast labeled navigation within and across windows
   {
-    "phaazon/hop.nvim",
-    branch = 'v2',
-    config = function()
-      local hop = require('hop')
-      hop.setup { keys = 'etovxqpdygfblzhckisuran' }
-      
-      -- Custom highlights with cyan background
-      vim.api.nvim_set_hl(0, 'HopNextKey', { bg = '#00dfff', fg = '#000000', bold = true })
-      vim.api.nvim_set_hl(0, 'HopNextKey1', { bg = '#00dfff', fg = '#000000', bold = true })
-      vim.api.nvim_set_hl(0, 'HopNextKey2', { bg = '#ff007c', fg = '#000000', bold = true })
-      vim.api.nvim_set_hl(0, 'HopUnmatched', { fg = '#666666' })
-      
-      -- Hop to any character (most used)
-      vim.keymap.set('n', 's', function() hop.hint_char1() end, {desc = "Hop to character"})
-      
-      -- Hop to any word beginning
-      vim.keymap.set('n', 'gw', function() hop.hint_words() end, {desc = "Hop to word"})
-      
-      -- Hop with 2 characters for precision (shift-s)
-      vim.keymap.set('n', 'S', function() hop.hint_char2() end, {desc = "Hop to 2 characters"})
-    end,
+    'folke/flash.nvim',
+    event = 'VeryLazy',
+    opts = {},
+    keys = {
+      { 's', mode = { 'n', 'x', 'o' }, function() require('flash').jump() end, desc = 'Flash jump' },
+      { 'S', mode = { 'n', 'x', 'o' }, function() require('flash').treesitter() end, desc = 'Flash treesitter' },
+      { 'r', mode = 'o', function() require('flash').remote() end, desc = 'Remote flash' },
+      { 'R', mode = { 'o', 'x' }, function() require('flash').treesitter_search() end, desc = 'Treesitter search' },
+      { '<c-s>', mode = 'c', function() require('flash').toggle() end, desc = 'Toggle flash search' },
+    },
   },
 
   -- Better search highlighting and preview
