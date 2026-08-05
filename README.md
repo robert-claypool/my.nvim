@@ -20,9 +20,12 @@ This started as a Kickstart.nvim fork and is now a heavily customized Neovim set
 
 ## Requirements
 
-- Neovim `0.11+`
+- Neovim `0.12+`
 - `git`
 - `ripgrep` (`rg`)
+- `tree-sitter` CLI (`brew install tree-sitter-cli` on macOS), required for
+  parsers generated from grammar definitions such as LaTeX
+- Node.js, required by Tree-sitter grammars generated through npm
 - A C compiler is recommended for Treesitter parser builds
 
 ## Install

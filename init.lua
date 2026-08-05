@@ -400,8 +400,10 @@ require('lazy').setup({
   {
     -- Highlight, edit, and navigate code
     'nvim-treesitter/nvim-treesitter',
+    branch = 'main',
+    lazy = false,
     dependencies = {
-      'nvim-treesitter/nvim-treesitter-textobjects',
+      { 'nvim-treesitter/nvim-treesitter-textobjects', branch = 'main' },
     },
     build = ':TSUpdate',
   },
@@ -664,107 +666,123 @@ vim.keymap.set('n', '<leader>sr', function() Snacks.picker.resume() end, { desc 
 -- [[ Configure Treesitter ]]
 -- See `:help nvim-treesitter`
 
--- Defer Treesitter setup after first render to improve startup time of 'nvim {filename}'
-vim.defer_fn(function()
+local treesitter_parsers = {
+  -- Programming languages
+  'c', 'cpp', 'c_sharp', 'go', 'lua', 'python', 'rust', 'tsx', 'javascript',
+  'typescript', 'php', 'perl', 'zig', 'svelte',
 
-  require('nvim-treesitter.configs').setup {
-    -- Add languages to be installed here that you want installed for treesitter
-    ensure_installed = { 
-      -- Programming languages
-      'c', 'cpp', 'c_sharp', 'go', 'lua', 'python', 'rust', 'tsx', 'javascript', 
-      'typescript', 'php', 'perl', 'zig', 'svelte',
-      
-      -- Documentation and config
-      'vimdoc', 'vim', 'markdown', 'markdown_inline', 'latex', 'mermaid',
-      
-      -- Shell and system
-      'bash', 'awk', 'powershell', 'tmux', 'ssh_config', 'passwd',
-      
-      -- Git
-      'diff', 'git_rebase', 'gitcommit', 'gitignore', 'gitattributes', 'git_config',
-      
-      -- Data formats
-      'json', 'jsonc', 'json5', 'yaml', 'toml', 'xml', 'csv', 'graphql', 'jq',
-      
-      -- Web
-      'html', 'css', 'scss', 'http', 'nginx', 'caddy',
-      
-      -- DevOps and cloud
-      'dockerfile', 'terraform', 'helm', 'bicep',
-      
-      -- Build tools and package managers
-      'make', 'cmake', 'requirements', 'pymanifest', 'editorconfig',
-      
-      -- Go ecosystem
-      'gomod', 'gosum', 'gowork', 'gotmpl', 'goctl',
-      
-      -- Documentation
-      'jsdoc', 'luadoc', 'godot_resource',
-      
-      -- Other
-      'sql', 'regex', 'printf', 'gpg'
-    },
+  -- Documentation and config
+  'vimdoc', 'vim', 'markdown', 'markdown_inline', 'latex', 'mermaid',
 
-    -- Autoinstall languages that are not installed. Defaults to false (but you can change for yourself!)
-    auto_install = false,
+  -- Shell and system
+  'bash', 'awk', 'powershell', 'ssh_config', 'passwd',
 
-    highlight = { enable = true },
-    indent = { enable = true },
-    incremental_selection = {
-      enable = true,
-      keymaps = {
-        init_selection = '<c-space>',
-        node_incremental = '<c-space>',
-        scope_incremental = '<c-s>',
-        node_decremental = '<M-space>',
-      },
-    },
-    textobjects = {
-      select = {
-        enable = true,
-        lookahead = true, -- Automatically jump forward to textobj, similar to targets.vim
-        keymaps = {
-          -- You can use the capture groups defined in textobjects.scm
-          ['aa'] = '@parameter.outer',
-          ['ia'] = '@parameter.inner',
-          ['af'] = '@function.outer',
-          ['if'] = '@function.inner',
-          ['ac'] = '@class.outer',
-          ['ic'] = '@class.inner',
-        },
-      },
-      move = {
-        enable = true,
-        set_jumps = true, -- whether to set jumps in the jumplist
-        goto_next_start = {
-          [']m'] = '@function.outer',
-          [']]'] = '@class.outer',
-        },
-        goto_next_end = {
-          [']M'] = '@function.outer',
-          [']['] = '@class.outer',
-        },
-        goto_previous_start = {
-          ['[m'] = '@function.outer',
-          ['[['] = '@class.outer',
-        },
-        goto_previous_end = {
-          ['[M'] = '@function.outer',
-          ['[]'] = '@class.outer',
-        },
-      },
-      swap = {
-        enable = true,
-        swap_next = {
-          [']a'] = '@parameter.inner',
-        },
-        swap_previous = {
-          ['[a'] = '@parameter.inner',
-        },
-      },
+  -- Git
+  'diff', 'git_rebase', 'gitcommit', 'gitignore', 'gitattributes', 'git_config',
+
+  -- Data formats
+  'json', 'json5', 'yaml', 'toml', 'xml', 'csv', 'graphql', 'jq',
+
+  -- Web
+  'html', 'css', 'scss', 'http', 'nginx', 'caddy',
+
+  -- DevOps and cloud
+  'dockerfile', 'terraform', 'helm', 'bicep',
+
+  -- Build tools and package managers
+  'make', 'cmake', 'requirements', 'pymanifest', 'editorconfig',
+
+  -- Go ecosystem
+  'gomod', 'gosum', 'gowork', 'gotmpl', 'goctl',
+
+  -- Documentation
+  'jsdoc', 'luadoc', 'godot_resource',
+
+  -- Other
+  'sql', 'regex', 'printf', 'gpg',
+}
+
+require('nvim-treesitter').setup {}
+
+-- Install missing parsers after the first interactive render. Headless jobs
+-- should request and await the exact parsers they need instead of starting a
+-- fleet of asynchronous downloads on exit.
+if #vim.api.nvim_list_uis() > 0 then
+  vim.defer_fn(function()
+    require('nvim-treesitter').install(treesitter_parsers)
+  end, 0)
+end
+
+-- Neovim 0.12 owns highlighting; nvim-treesitter supplies compatible parsers,
+-- queries, and its experimental indent expression.
+vim.api.nvim_create_autocmd('FileType', {
+  desc = 'Enable Tree-sitter highlighting and indentation when a parser exists',
+  callback = function(args)
+    if vim.b[args.buf].treesitter_highlight_disabled then
+      return
+    end
+
+    if pcall(vim.treesitter.start, args.buf) then
+      vim.bo[args.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+    end
+  end,
+})
+
+-- jsonc uses the JSON grammar; the rewritten plugin no longer ships a
+-- duplicate jsonc parser.
+vim.treesitter.language.register('json', 'jsonc')
+
+require('nvim-treesitter-textobjects').setup {
+  select = { lookahead = true },
+  move = { set_jumps = true },
+}
+
+local function map_ts_select(keys, query, description)
+  vim.keymap.set({ 'x', 'o' }, keys, function()
+    require('nvim-treesitter-textobjects.select').select_textobject(query, 'textobjects')
+  end, { desc = description })
+end
+
+map_ts_select('aa', '@parameter.outer', 'Around parameter')
+map_ts_select('ia', '@parameter.inner', 'Inside parameter')
+map_ts_select('af', '@function.outer', 'Around function')
+map_ts_select('if', '@function.inner', 'Inside function')
+map_ts_select('ac', '@class.outer', 'Around class')
+map_ts_select('ic', '@class.inner', 'Inside class')
+
+local function map_ts_move(keys, method, query, description)
+  vim.keymap.set({ 'n', 'x', 'o' }, keys, function()
+    require('nvim-treesitter-textobjects.move')[method](query, 'textobjects')
+  end, { desc = description })
+end
+
+map_ts_move(']m', 'goto_next_start', '@function.outer', 'Next function start')
+map_ts_move(']]', 'goto_next_start', '@class.outer', 'Next class start')
+map_ts_move(']M', 'goto_next_end', '@function.outer', 'Next function end')
+map_ts_move('][', 'goto_next_end', '@class.outer', 'Next class end')
+map_ts_move('[m', 'goto_previous_start', '@function.outer', 'Previous function start')
+map_ts_move('[[', 'goto_previous_start', '@class.outer', 'Previous class start')
+map_ts_move('[M', 'goto_previous_end', '@function.outer', 'Previous function end')
+map_ts_move('[]', 'goto_previous_end', '@class.outer', 'Previous class end')
+
+vim.keymap.set('n', ']a', function()
+  require('nvim-treesitter-textobjects.swap').swap_next '@parameter.inner'
+end, { desc = 'Swap with next parameter' })
+vim.keymap.set('n', '[a', function()
+  require('nvim-treesitter-textobjects.swap').swap_previous '@parameter.inner'
+end, { desc = 'Swap with previous parameter' })
+
+-- nvim-treesitter main no longer implements incremental selection. Flash
+-- provides its recommended successor while preserving the existing keys.
+vim.keymap.set({ 'n', 'x', 'o' }, '<C-Space>', function()
+  require('flash').treesitter {
+    actions = {
+      ['<C-Space>'] = 'next',
+      ['<M-Space>'] = 'prev',
+      ['<BS>'] = 'prev',
     },
   }
-end, 0)
+end, { desc = 'Tree-sitter incremental selection' })
 
 -- [[ Configure LSP ]]
 --  This function gets run when an LSP connects to a particular buffer.
@@ -954,8 +972,17 @@ for i = 1, 6 do
     vim.api.nvim_set_keymap('n', '<localleader>h' .. i, ':lua blingWord(' .. i .. ')<CR>', { noremap = true, silent = true })
 end
 
--- Safety toggle for TreeSitter highlighting if issues occur
-vim.keymap.set('n', '<localleader>th', ':TSBufToggle highlight<CR>', { desc = 'Toggle TS highlight for this buffer' })
+-- Safety toggle for Tree-sitter highlighting if issues occur.
+vim.keymap.set('n', '<localleader>th', function()
+  local bufnr = vim.api.nvim_get_current_buf()
+  if vim.b[bufnr].treesitter_highlight_disabled then
+    vim.b[bufnr].treesitter_highlight_disabled = false
+    pcall(vim.treesitter.start, bufnr)
+  else
+    vim.b[bufnr].treesitter_highlight_disabled = true
+    vim.treesitter.stop(bufnr)
+  end
+end, { desc = 'Toggle TS highlight for this buffer' })
 
 
 -- Highlight definitions
