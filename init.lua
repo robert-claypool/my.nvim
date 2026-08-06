@@ -7,6 +7,13 @@
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
+-- This configuration is Lua-native. Disable legacy remote-plugin providers so
+-- :checkhealth reports only integrations we intentionally support.
+vim.g.loaded_node_provider = 0
+vim.g.loaded_perl_provider = 0
+vim.g.loaded_python3_provider = 0
+vim.g.loaded_ruby_provider = 0
+
 -- [[ Install `lazy.nvim` plugin manager ]]
 --    https://github.com/folke/lazy.nvim
 --    `:help lazy.nvim.txt` for more info
@@ -33,21 +40,6 @@ require('lazy').setup({
   -- Tim Pope essentials
   'tpope/vim-surround',
   'tpope/vim-repeat',  -- Enable repeating supported plugin maps with "."
-
-  -- AI autocomplete: Codeium
-  {
-    'Exafunction/codeium.vim',
-    event = 'BufEnter',
-    config = function()
-      -- Disable default bindings and keep explicit keymaps.
-      vim.g.codeium_disable_bindings = 1
-
-      vim.keymap.set('i', '<C-g>', function() return vim.fn['codeium#Accept']() end, { expr = true, silent = true })
-      vim.keymap.set('i', '<C-]>', function() return vim.fn['codeium#CycleCompletions'](1) end, { expr = true, silent = true })
-      vim.keymap.set('i', '<M-[>', function() return vim.fn['codeium#CycleCompletions'](-1) end, { expr = true, silent = true })
-      vim.keymap.set('i', '<C-x>', function() return vim.fn['codeium#Clear']() end, { expr = true, silent = true })
-    end,
-  },
 
   -- Fast labeled navigation within and across windows
   {
@@ -421,7 +413,11 @@ require('lazy').setup({
   --
   --    For additional information see: https://github.com/folke/lazy.nvim#-structuring-your-plugins
   { import = 'custom.plugins' },
-}, {})
+}, {
+  -- No configured plugin consumes LuaRocks. Keep health output honest instead
+  -- of bootstrapping a second Lua package manager and interpreter.
+  rocks = { enabled = false },
+})
 
 -- [[ Setting options ]]
 -- See `:help vim.o`
@@ -666,41 +662,8 @@ vim.keymap.set('n', '<leader>sr', function() Snacks.picker.resume() end, { desc 
 -- [[ Configure Treesitter ]]
 -- See `:help nvim-treesitter`
 
-local treesitter_parsers = {
-  -- Programming languages
-  'c', 'cpp', 'c_sharp', 'go', 'lua', 'python', 'rust', 'tsx', 'javascript',
-  'typescript', 'php', 'perl', 'zig', 'svelte',
-
-  -- Documentation and config
-  'vimdoc', 'vim', 'markdown', 'markdown_inline', 'latex', 'mermaid',
-
-  -- Shell and system
-  'bash', 'awk', 'powershell', 'ssh_config', 'passwd',
-
-  -- Git
-  'diff', 'git_rebase', 'gitcommit', 'gitignore', 'gitattributes', 'git_config',
-
-  -- Data formats
-  'json', 'json5', 'yaml', 'toml', 'xml', 'csv', 'graphql', 'jq',
-
-  -- Web
-  'html', 'css', 'scss', 'http', 'nginx', 'caddy',
-
-  -- DevOps and cloud
-  'dockerfile', 'terraform', 'helm', 'bicep',
-
-  -- Build tools and package managers
-  'make', 'cmake', 'requirements', 'pymanifest', 'editorconfig',
-
-  -- Go ecosystem
-  'gomod', 'gosum', 'gowork', 'gotmpl', 'goctl',
-
-  -- Documentation
-  'jsdoc', 'luadoc', 'godot_resource',
-
-  -- Other
-  'sql', 'regex', 'printf', 'gpg',
-}
+local tooling = require 'my.tooling'
+local treesitter_parsers = tooling.treesitter_parsers
 
 require('nvim-treesitter').setup {}
 
@@ -881,23 +844,7 @@ local mason_lspconfig = require 'mason-lspconfig'
 --
 --  If you want to override the default filetypes that your language server will attach to you can
 --  define the property 'filetypes' to the map in question.
-local servers = {
-  -- clangd = {},
-  -- gopls = {},
-  -- pyright = {},
-  -- rust_analyzer = {},
-  -- ts_ls = {},
-  -- html = { filetypes = { 'html', 'twig', 'hbs'} },
-
-  lua_ls = {
-    Lua = {
-      workspace = { checkThirdParty = false },
-      telemetry = { enable = false },
-      -- NOTE: toggle below to ignore Lua_LS's noisy `missing-fields` warnings
-      -- diagnostics = { disable = { 'missing-fields' } },
-    },
-  },
-}
+local servers = tooling.lsp_servers
 
 -- Setup basic LSP capabilities
 local capabilities = vim.lsp.protocol.make_client_capabilities()
@@ -908,6 +855,9 @@ end
 
 mason_lspconfig.setup {
   ensure_installed = vim.tbl_keys(servers),
+  -- Configuration and enablement below are explicit and also cover servers
+  -- installed outside Mason without allowing surprise auto-enabled servers.
+  automatic_enable = false,
 }
 
 vim.lsp.config('*', {
@@ -915,11 +865,8 @@ vim.lsp.config('*', {
   on_attach = on_attach,
 })
 
-for server_name, server_settings in pairs(servers) do
-  vim.lsp.config(server_name, {
-    settings = server_settings,
-    filetypes = server_settings.filetypes,
-  })
+for server_name, server_config in pairs(servers) do
+  vim.lsp.config(server_name, server_config)
 end
 
 vim.lsp.enable(vim.tbl_keys(servers))

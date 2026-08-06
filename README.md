@@ -14,7 +14,8 @@ This started as a Kickstart.nvim fork and is now a heavily customized Neovim set
 - Plugin manager: `lazy.nvim`
 - Pickers/navigation: `snacks.nvim` (`Snacks.picker.*`)
 - LSP/tooling: Mason + native Neovim LSP (`vim.lsp.config` / `vim.lsp.enable`)
-- Completion: `blink.cmp` + optional Codeium
+- Completion: `blink.cmp`; agent work remains external rather than embedding a
+  second cloud-completion account in the editor
 - Syntax/highlighting: Treesitter
 - Comments: `Comment.nvim` (linewise `gc` / `gcc`, shell-safe)
 
@@ -54,7 +55,14 @@ Useful checks:
 :Lazy
 :Mason
 :checkhealth
+:checkhealth my
 ```
+
+`checkhealth my` is the workstation contract: required CLI tools, Mason-managed
+language servers, every configured Tree-sitter parser, and intentional provider
+exclusions. The general Snacks health report also probes optional image, PDF,
+LaTeX, and Mermaid rendering stacks; those heavyweight dependencies are not
+part of this baseline.
 
 ## Daily keys (most useful)
 

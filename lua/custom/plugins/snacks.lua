@@ -12,7 +12,10 @@ return {
     -- Smart buffer deletion that preserves window layouts
     bufdelete = { enabled = true },
     -- Primary picker layer for files/grep/help/LSP navigation
-    picker = { enabled = true },
+    picker = {
+      enabled = true,
+      ui_select = true,
+    },
     -- Never enable smooth scrolling - makes cursor movement very slow
     scroll = { 
       enabled = false,
