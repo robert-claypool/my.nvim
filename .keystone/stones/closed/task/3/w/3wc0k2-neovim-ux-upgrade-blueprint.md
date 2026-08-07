@@ -235,4 +235,6 @@ Validation snapshot after implementation slices:
 ## Lessons
 
 - For ksmem-managed stones, avoid delegated large markdown rewrites; update progress with ksmem note/rewrite tools to prevent accidental corruption and preserve schema integrity.
+- Snacks deliberately installs vim.ui.select on UIEnter. A headless health run before that event reports a misleading picker mismatch; verify with a real TUI or simulate UIEnter before treating it as a configuration defect.
+- The daily UI no longer requires Nerd Font private-use glyphs: use plain JetBrains Mono, disable cosmetic file/devicon dependencies, and configure text or standard-Unicode indicators in Snacks, Blink, Outline, which-key, and lualine.
 

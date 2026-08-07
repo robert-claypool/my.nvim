@@ -28,6 +28,8 @@ This started as a Kickstart.nvim fork and is now a heavily customized Neovim set
   parsers generated from grammar definitions such as LaTeX
 - Node.js, required by Tree-sitter grammars generated through npm
 - A C compiler is recommended for Treesitter parser builds
+- A normal Unicode-capable monospace font. Nerd Font patches are intentionally
+  not required; editor indicators use text or standard Unicode.
 
 ## Install
 
@@ -60,7 +62,9 @@ Useful checks:
 
 `checkhealth my` is the workstation contract: required CLI tools, Mason-managed
 language servers, every configured Tree-sitter parser, and intentional provider
-exclusions. The general Snacks health report also probes optional image, PDF,
+exclusions. It also verifies Snacks' `vim.ui.select` integration when a UI is
+attached and explains why that integration is deferred during a headless check.
+The general Snacks health report also probes optional image, PDF,
 LaTeX, and Mermaid rendering stacks; those heavyweight dependencies are not
 part of this baseline.
 

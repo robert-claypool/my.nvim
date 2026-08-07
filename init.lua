@@ -143,6 +143,10 @@ require('lazy').setup({
           show_cursorline = true,
           hide_cursor = false,
         },
+        symbols = {
+          -- Keep the outline useful with an ordinary, unpatched monospace font.
+          icon_fetcher = function(kind) return kind:sub(1, 1) end,
+        },
       })
       vim.keymap.set('n', '<leader>o', ':Outline<CR>', { desc = 'Toggle symbols [o]utline' })
     end
@@ -158,7 +162,6 @@ require('lazy').setup({
       
       -- Show more file information
       columns = {
-        "icon",
         "permissions",
         "size",
         "mtime",
@@ -172,7 +175,6 @@ require('lazy').setup({
         show_hidden = true,
       },
     },
-    dependencies = { "nvim-tree/nvim-web-devicons" },
   },
 
   -- NOTE: This is where your plugins related to LSP can be installed.
@@ -209,6 +211,10 @@ require('lazy').setup({
     opts = {
       keymap = { preset = 'default' },
       completion = { documentation = { auto_show = true } },
+      appearance = {
+        nerd_font_variant = 'normal',
+        kind_icons = require('my.icons').kinds,
+      },
       sources = {
         default = { 'lsp', 'path', 'snippets', 'buffer' },
       },
@@ -217,7 +223,12 @@ require('lazy').setup({
   },
 
   -- Useful plugin to show you pending keybinds.
-  { 'folke/which-key.nvim', opts = {} },
+  {
+    'folke/which-key.nvim',
+    opts = {
+      icons = { mappings = false },
+    },
+  },
   {
     -- Adds git related signs to the gutter, as well as utilities for managing changes
     'lewis6991/gitsigns.nvim',

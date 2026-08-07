@@ -1,3 +1,5 @@
+local kind_icons = require('my.icons').kinds
+
 return {
   "folke/snacks.nvim",
   priority = 1000,
@@ -8,6 +10,13 @@ return {
       enabled = true,
       timeout = 12000,
       style = "compact",
+      icons = {
+        error = 'E ',
+        warn = 'W ',
+        info = 'I ',
+        debug = 'D ',
+        trace = 'T ',
+      },
     },
     -- Smart buffer deletion that preserves window layouts
     bufdelete = { enabled = true },
@@ -15,6 +24,19 @@ return {
     picker = {
       enabled = true,
       ui_select = true,
+      formatters = {
+        severity = { icons = false, level = true },
+      },
+      icons = {
+        files = { enabled = false },
+        git = { enabled = false, commit = '@ ' },
+        keymaps = { nowait = '! ' },
+        undo = { saved = 'S ' },
+        ui = { live = 'L ', selected = '* ', unselected = '  ' },
+        diagnostics = { Error = 'E ', Warn = 'W ', Hint = 'H ', Info = 'I ' },
+        lsp = { unavailable = 'x ', enabled = '+ ', disabled = '- ', attached = '* ' },
+        kinds = kind_icons,
+      },
     },
     -- Never enable smooth scrolling - makes cursor movement very slow
     scroll = { 

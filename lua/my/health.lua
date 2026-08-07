@@ -57,6 +57,15 @@ function M.check()
       vim.health.warn(('%s is not explicitly disabled'):format(provider))
     end
   end
+
+  vim.health.start 'UI integrations'
+  if vim.ui.select == Snacks.picker.select then
+    vim.health.ok 'vim.ui.select uses Snacks.picker.select'
+  elseif #vim.api.nvim_list_uis() == 0 then
+    vim.health.info 'Snacks installs vim.ui.select on UIEnter; no UI is attached to this headless check.'
+  else
+    vim.health.error 'vim.ui.select does not use Snacks.picker.select in an attached UI'
+  end
   vim.health.info 'Snacks image/PDF/LaTeX/Mermaid rendering dependencies are intentionally not part of this workstation baseline.'
 end
 
